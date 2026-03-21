@@ -2,793 +2,749 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>答案之书 · The Book of Answers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>答案之书</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;900&family=Cinzel:wght@400;600&family=Noto+Sans+SC:wght@300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;900&family=Ma+Shan+Zheng&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
 
-  :root {
-    --parchment: #f5ead6;
-    --ink: #2c1810;
-    --gold: #c9973a;
-    --gold-light: #e8c878;
-    --red: #8b1a1a;
-    --shadow: rgba(44,24,16,0.4);
-    --mystic: #1a0f0a;
-  }
+:root {
+  --cream:    #faf6f0;
+  --cream2:   #f3ebe0;
+  --cream3:   #ede0cc;
+  --warm:     #e8d5b7;
+  --brown:    #7a5c3e;
+  --brown2:   #5a3e28;
+  --caramel:  #c49a5a;
+  --caramel2: #a07840;
+  --blush:    #e8c8a8;
+  --text:     #3d2b1a;
+  --text2:    #7a5c3e;
+  --shadow:   rgba(90,62,40,0.12);
+  --shadow2:  rgba(90,62,40,0.22);
+}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-  body {
-    min-height: 100vh;
-    background: var(--mystic);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Noto Serif SC', serif;
-    overflow: hidden;
-    position: relative;
-  }
+html, body {
+  min-height: 100vh;
+  background: var(--cream);
+  font-family: 'Noto Serif SC', serif;
+  color: var(--text);
+  overflow-x: hidden;
+}
 
-  /* Starfield */
-  .stars {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background:
-      radial-gradient(ellipse at 20% 20%, rgba(201,151,58,0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 80%, rgba(139,26,26,0.08) 0%, transparent 50%);
-  }
-  .star {
-    position: absolute;
-    background: var(--gold-light);
-    border-radius: 50%;
-    animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
-    opacity: 0;
-  }
-  @keyframes twinkle {
-    0%,100% { opacity: 0; transform: scale(0.5); }
-    50% { opacity: var(--op, 0.6); transform: scale(1); }
-  }
+body {
+  background:
+    radial-gradient(ellipse at 15% 10%, rgba(232,208,176,0.55) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 90%, rgba(212,185,150,0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 40%, rgba(250,246,240,0.8) 0%, transparent 60%),
+    var(--cream2);
+}
 
-  /* Floating dust */
-  .dust {
-    position: fixed; inset: 0; pointer-events: none; z-index: 1;
-    overflow: hidden;
-  }
-  .mote {
-    position: absolute;
-    width: 2px; height: 2px;
-    background: var(--gold);
-    border-radius: 50%;
-    animation: float var(--fd, 8s) linear infinite var(--fdelay, 0s);
-    opacity: 0;
-  }
-  @keyframes float {
-    0% { transform: translateY(100vh) translateX(0); opacity: 0; }
-    10% { opacity: 0.4; }
-    90% { opacity: 0.2; }
-    100% { transform: translateY(-20px) translateX(var(--fx, 30px)); opacity: 0; }
-  }
+/* ─── Grain texture overlay ─── */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  pointer-events:none; z-index:0;
+  opacity:0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
-  /* Main container */
-  .scene {
-    position: relative;
-    z-index: 10;
-    width: min(480px, 95vw);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-  }
+/* ─── Page layout ─── */
+.app {
+  position: relative; z-index:1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px 20px 60px;
+}
 
-  /* Title area */
-  .title-area {
-    text-align: center;
-    margin-bottom: 24px;
-    animation: fadeDown 1s ease forwards;
-  }
-  .title-cn {
-    font-size: clamp(28px,6vw,38px);
-    font-weight: 900;
-    color: var(--gold);
-    letter-spacing: 0.3em;
-    text-shadow: 0 0 30px rgba(201,151,58,0.5), 0 2px 4px rgba(0,0,0,0.8);
-  }
-  .title-en {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(11px,2.5vw,14px);
-    color: rgba(201,151,58,0.5);
-    letter-spacing: 0.25em;
-    margin-top: 4px;
-  }
-  .title-divider {
-    width: 120px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    margin: 10px auto 0;
-  }
+/* ─── Header ─── */
+.header {
+  text-align: center;
+  margin-bottom: 36px;
+  animation: fadeDown 0.9s ease both;
+}
+.header-eyebrow {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--caramel);
+  letter-spacing: 0.25em;
+  margin-bottom: 6px;
+}
+.header-title {
+  font-family: 'Ma Shan Zheng', serif;
+  font-size: clamp(34px, 9vw, 48px);
+  color: var(--brown2);
+  letter-spacing: 0.15em;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(90,62,40,0.08);
+}
+.header-divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px auto 0;
+  width: fit-content;
+}
+.header-divider span {
+  font-size: 10px; color: var(--caramel); letter-spacing: 0.2em;
+  font-family: 'Lora', serif; font-style: italic;
+}
+.header-divider::before, .header-divider::after {
+  content:'';
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--caramel));
+}
+.header-divider::after { background: linear-gradient(90deg, var(--caramel), transparent); }
 
-  /* Book */
-  .book-wrapper {
-    perspective: 1200px;
-    width: 320px;
-    height: 420px;
-    margin: 0 auto;
-  }
-  .book {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.1s ease;
-  }
-  .book-cover, .book-back {
-    position: absolute;
-    inset: 0;
-    border-radius: 4px 16px 16px 4px;
-    backface-visibility: hidden;
-  }
-  .book-cover {
-    background: linear-gradient(135deg, #3d1a0a 0%, #6b2d12 40%, #4a1f0d 70%, #2c1008 100%);
-    box-shadow:
-      -8px 8px 30px rgba(0,0,0,0.8),
-      inset 0 0 0 2px rgba(201,151,58,0.2),
-      inset 4px 0 0 rgba(0,0,0,0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 32px 24px;
-    cursor: default;
-    overflow: hidden;
-  }
-  .book-cover::before {
-    content: '';
-    position: absolute;
-    inset: 12px;
-    border: 1px solid rgba(201,151,58,0.25);
-    border-radius: 2px 12px 12px 2px;
-    pointer-events: none;
-  }
-  .book-cover::after {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 28px;
-    background: linear-gradient(90deg, rgba(0,0,0,0.5), rgba(0,0,0,0.1));
-    border-right: 2px solid rgba(201,151,58,0.15);
-  }
+/* ─── PHASE: ASK ─── */
+#phase-ask {
+  display: flex; flex-direction: column; align-items: center;
+  width: 100%; max-width: 360px;
+  animation: fadeUp 0.7s 0.2s ease both;
+}
 
-  .cover-eye {
-    width: 80px;
-    height: 80px;
-    position: relative;
-  }
-  .cover-eye svg { width: 100%; height: 100%; }
+.ask-card {
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(196,154,90,0.25);
+  border-radius: 24px;
+  padding: 32px 28px 28px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 32px var(--shadow), 0 2px 8px var(--shadow);
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+.ask-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:3px;
+  background: linear-gradient(90deg, transparent, var(--caramel), var(--blush), var(--caramel), transparent);
+}
 
-  .cover-title-cn {
-    font-size: 22px;
-    font-weight: 900;
-    color: var(--gold);
-    letter-spacing: 0.4em;
-    text-shadow: 0 0 20px rgba(201,151,58,0.6);
-  }
-  .cover-title-en {
-    font-family: 'Cinzel', serif;
-    font-size: 10px;
-    color: rgba(201,151,58,0.45);
-    letter-spacing: 0.2em;
-    text-align: center;
-  }
-  .cover-ornament {
-    width: 60px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  }
+.ask-icon {
+  font-size: 40px;
+  margin-bottom: 16px;
+  display: block;
+  animation: floatIcon 4s ease-in-out infinite;
+}
+@keyframes floatIcon {
+  0%,100%{ transform: translateY(0); }
+  50%{ transform: translateY(-6px); }
+}
 
-  /* Page reveal */
-  .page {
-    position: absolute;
-    inset: 0;
-    border-radius: 4px 16px 16px 4px;
-    background: linear-gradient(135deg, #fdf6e3 0%, var(--parchment) 50%, #f0e0c0 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 32px;
-    backface-visibility: hidden;
-    transform: rotateY(-180deg);
-    box-shadow:
-      -4px 4px 20px rgba(0,0,0,0.6),
-      inset -2px 0 8px rgba(0,0,0,0.05);
-    overflow: hidden;
-  }
-  .page::before {
-    content: '';
-    position: absolute;
-    inset: 16px;
-    border: 1px solid rgba(139,26,26,0.15);
-    pointer-events: none;
-  }
-  .page-texture {
-    position: absolute;
-    inset: 0;
-    background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    opacity: 0.5;
-    pointer-events: none;
-  }
-  .page-number {
-    position: absolute;
-    bottom: 20px;
-    font-family: 'Cinzel', serif;
-    font-size: 11px;
-    color: rgba(139,26,26,0.4);
-    letter-spacing: 0.15em;
-  }
-  .answer-ornament-top, .answer-ornament-bottom {
-    color: var(--red);
-    font-size: 18px;
-    opacity: 0.5;
-    line-height: 1;
-  }
-  .answer-text {
-    font-size: clamp(18px, 5vw, 24px);
-    font-weight: 600;
-    color: var(--ink);
-    text-align: center;
-    line-height: 1.8;
-    letter-spacing: 0.08em;
-    padding: 16px 0;
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.8);
-    position: relative;
-    z-index: 1;
-  }
-  .answer-sub {
-    font-size: 11px;
-    color: rgba(44,24,16,0.35);
-    letter-spacing: 0.2em;
-    font-family: 'Cinzel', serif;
-    margin-top: 6px;
-    position: relative;
-    z-index: 1;
-  }
+.ask-title {
+  font-size: 17px; font-weight: 600;
+  color: var(--brown2);
+  margin-bottom: 10px;
+  letter-spacing: 0.05em;
+}
+.ask-desc {
+  font-size: 14px; color: var(--text2);
+  line-height: 2; font-weight: 300;
+  margin-bottom: 8px;
+}
 
-  /* Flip animation */
-  .book.flipping {
-    animation: bookFlip 1.2s cubic-bezier(0.4,0,0.2,1) forwards;
-  }
-  @keyframes bookFlip {
-    0% { transform: rotateY(0deg); }
-    50% { transform: rotateY(-90deg) scale(1.05); }
-    100% { transform: rotateY(-180deg); }
-  }
-  .book.showing-page .book-cover { opacity: 0; pointer-events: none; }
-  .book.showing-page .page { transform: rotateY(0); }
+.breath-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; margin: 18px 0 24px;
+}
+.breath-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--caramel);
+  animation: breathe 2.8s ease-in-out infinite;
+}
+.breath-dot:nth-child(2){ animation-delay: 0.4s; }
+.breath-dot:nth-child(3){ animation-delay: 0.8s; }
+@keyframes breathe {
+  0%,100%{ transform:scale(0.6); opacity:0.3; }
+  50%{ transform:scale(1.2); opacity:1; }
+}
 
-  /* Flip back */
-  .book.flipping-back {
-    animation: bookFlipBack 0.8s cubic-bezier(0.4,0,0.2,1) forwards;
-  }
-  @keyframes bookFlipBack {
-    0% { transform: rotateY(-180deg); }
-    100% { transform: rotateY(0deg); }
-  }
+.reveal-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--caramel), var(--caramel2));
+  border: none;
+  border-radius: 50px;
+  color: #fff;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  padding: 16px 32px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(160,120,64,0.35), 0 1px 3px rgba(90,62,40,0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.reveal-btn::after {
+  content:'';
+  position:absolute; inset:0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  border-radius:inherit;
+}
+.reveal-btn:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(160,120,64,0.3); }
+.reveal-btn:disabled { opacity:0.5; cursor:default; }
 
-  /* Prompt card */
-  .prompt-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(201,151,58,0.2);
-    border-radius: 12px;
-    padding: 20px 24px;
-    text-align: center;
-    margin-top: 20px;
-    backdrop-filter: blur(4px);
-    animation: fadeUp 0.6s ease forwards;
-    width: 100%;
-  }
-  .prompt-label {
-    font-size: 11px;
-    color: rgba(201,151,58,0.5);
-    letter-spacing: 0.25em;
-    font-family: 'Cinzel', serif;
-    margin-bottom: 8px;
-  }
-  .prompt-text {
-    font-size: clamp(13px, 3.5vw, 15px);
-    color: rgba(245,234,214,0.8);
-    line-height: 1.8;
-    font-weight: 300;
-  }
+/* ─── PHASE: ANSWER ─── */
+#phase-answer {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  width: 100%; max-width: 360px;
+}
+#phase-answer.visible { display: flex; }
 
-  /* Breathing dot */
-  .breath-dot {
-    display: inline-block;
-    width: 6px; height: 6px;
-    background: var(--gold);
-    border-radius: 50%;
-    margin: 16px auto 0;
-    animation: breathe 2.5s ease-in-out infinite;
-    box-shadow: 0 0 8px var(--gold);
-  }
-  @keyframes breathe {
-    0%,100% { transform: scale(0.7); opacity: 0.4; }
-    50% { transform: scale(1.3); opacity: 1; }
-  }
+/* ─── Answer card (also the shareable card) ─── */
+.answer-card-wrap {
+  position: relative;
+  width: 100%;
+  animation: revealCard 0.7s cubic-bezier(0.34,1.4,0.64,1) both;
+}
+@keyframes revealCard {
+  from { opacity:0; transform: scale(0.88) translateY(20px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
 
-  /* Reveal button */
-  .reveal-btn {
-    margin-top: 24px;
-    background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-    font-family: 'Noto Serif SC', serif;
-    font-size: 15px;
-    letter-spacing: 0.3em;
-    padding: 14px 40px;
-    border-radius: 4px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    animation: fadeUp 0.8s 0.3s ease both;
-  }
-  .reveal-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--gold);
-    transform: translateX(-101%);
-    transition: transform 0.3s ease;
-    z-index: 0;
-  }
-  .reveal-btn:hover::before { transform: translateX(0); }
-  .reveal-btn:hover { color: var(--mystic); }
-  .reveal-btn span { position: relative; z-index: 1; }
+/* Shareable card — this gets captured */
+.answer-card {
+  background: linear-gradient(160deg, #fefaf4 0%, #f7edd8 50%, #f0e3c8 100%);
+  border-radius: 24px;
+  padding: 40px 32px 36px;
+  width: 100%;
+  text-align: center;
+  box-shadow:
+    0 12px 48px var(--shadow2),
+    0 2px 8px var(--shadow),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
 
-  /* Action buttons */
-  .actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    margin-top: 20px;
-    animation: fadeUp 0.5s ease forwards;
-  }
-  .btn-again {
-    background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-    font-family: 'Noto Serif SC', serif;
-    font-size: 14px;
-    letter-spacing: 0.2em;
-    padding: 13px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-  .btn-again::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(201,151,58,0.1);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s ease;
-  }
-  .btn-again:hover::before { transform: scaleX(1); }
+/* Decorative circles */
+.answer-card::before {
+  content:'';
+  position:absolute; top:-60px; right:-60px;
+  width:200px; height:200px;
+  border-radius:50%;
+  background: radial-gradient(circle, rgba(232,197,152,0.25) 0%, transparent 70%);
+  pointer-events:none;
+}
+.answer-card::after {
+  content:'';
+  position:absolute; bottom:-40px; left:-40px;
+  width:160px; height:160px;
+  border-radius:50%;
+  background: radial-gradient(circle, rgba(212,175,130,0.2) 0%, transparent 70%);
+  pointer-events:none;
+}
 
-  .btn-work {
-    background: transparent;
-    border: 1px solid rgba(245,234,214,0.15);
-    color: rgba(245,234,214,0.4);
-    font-family: 'Noto Sans SC', sans-serif;
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    padding: 11px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .btn-work:hover {
-    border-color: rgba(245,234,214,0.3);
-    color: rgba(245,234,214,0.7);
-    background: rgba(255,255,255,0.03);
-  }
-  .btn-work:active { transform: scale(0.97); }
+.card-top-border {
+  position:absolute; top:0; left:0; right:0; height:3px;
+  background: linear-gradient(90deg, transparent 5%, var(--caramel) 30%, var(--blush) 50%, var(--caramel) 70%, transparent 95%);
+}
+.card-bottom-border {
+  position:absolute; bottom:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent 20%, rgba(196,154,90,0.4) 50%, transparent 80%);
+}
 
-  /* States */
-  .phase { display: none; }
-  .phase.active { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.card-label {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--caramel);
+  letter-spacing: 0.3em;
+  margin-bottom: 20px;
+  position: relative; z-index:1;
+}
+.card-ornament { color: var(--caramel); font-size: 14px; opacity: 0.6; margin: 8px 0; }
 
-  /* Ripple overlay */
-  .ripple-overlay {
-    position: fixed; inset: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: center;
-    pointer-events: none;
-    opacity: 0;
-  }
-  .ripple-overlay.active {
-    animation: rippleOut 1.4s ease forwards;
-  }
-  @keyframes rippleOut {
-    0% { opacity: 1; }
-    50% { opacity: 0.6; }
-    100% { opacity: 0; }
-  }
-  .ripple-circle {
-    position: absolute;
-    width: 20px; height: 20px;
-    border: 2px solid var(--gold);
-    border-radius: 50%;
-    animation: expand 1.4s ease forwards;
-  }
-  @keyframes expand {
-    to { width: 200vmax; height: 200vmax; opacity: 0; border-color: transparent; }
-  }
+.card-answer {
+  font-family: 'Ma Shan Zheng', serif;
+  font-size: clamp(22px, 7vw, 30px);
+  color: var(--brown2);
+  line-height: 1.7;
+  letter-spacing: 0.08em;
+  padding: 4px 0 10px;
+  position: relative; z-index:1;
+  text-shadow: 0 1px 3px rgba(90,62,40,0.06);
+}
 
-  /* Toast work */
-  .toast {
-    position: fixed;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: rgba(44,24,16,0.95);
-    border: 1px solid rgba(201,151,58,0.3);
-    color: rgba(245,234,214,0.8);
-    font-family: 'Noto Sans SC', sans-serif;
-    font-size: 13px;
-    padding: 12px 24px;
-    border-radius: 40px;
-    letter-spacing: 0.1em;
-    backdrop-filter: blur(10px);
-    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease;
-    opacity: 0;
-    white-space: nowrap;
-    z-index: 200;
-  }
-  .toast.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
+.card-page {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--caramel);
+  letter-spacing: 0.2em;
+  position: relative; z-index:1;
+  margin-top: 6px;
+}
 
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+.card-brand {
+  font-size: 10px;
+  color: rgba(122,92,62,0.35);
+  letter-spacing: 0.25em;
+  margin-top: 18px;
+  position: relative; z-index:1;
+}
 
-  /* Particle burst */
-  .particle {
-    position: fixed;
-    pointer-events: none;
-    border-radius: 50%;
-    z-index: 150;
-    animation: particleFly var(--pt, 0.8s) ease-out forwards;
-  }
-  @keyframes particleFly {
-    0% { transform: translate(0,0) scale(1); opacity: 1; }
-    100% { transform: translate(var(--px,40px), var(--py,-80px)) scale(0); opacity: 0; }
-  }
+/* Long-press hint */
+.save-hint {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--caramel2);
+  opacity: 0;
+  animation: fadeUp 0.5s 0.8s ease both;
+}
+.save-hint svg { width:14px; height:14px; flex-shrink:0; }
 
-  /* Eye pulse when idle */
-  @keyframes eyePulse {
-    0%,100% { filter: drop-shadow(0 0 4px rgba(201,151,58,0.5)); }
-    50% { filter: drop-shadow(0 0 16px rgba(201,151,58,0.9)); }
-  }
-  .cover-eye { animation: eyePulse 3s ease-in-out infinite; }
+/* Long-press effect */
+.answer-card.pressing {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transform: scale(0.98);
+  box-shadow: 0 6px 20px var(--shadow);
+}
+
+/* Progress ring for long press */
+.press-ring {
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:70px; height:70px;
+  pointer-events:none;
+  opacity:0;
+  z-index:10;
+}
+.press-ring circle {
+  fill:none;
+  stroke: var(--caramel);
+  stroke-width:3;
+  stroke-dasharray:188;
+  stroke-dashoffset:188;
+  transform-origin:center;
+  transform:rotate(-90deg);
+  transition:stroke-dashoffset 0.05s linear;
+}
+
+/* ─── Action buttons ─── */
+.actions {
+  display: flex; flex-direction: column; gap: 10px;
+  width: 100%; margin-top: 20px;
+  animation: fadeUp 0.5s 0.4s ease both;
+}
+.btn-again {
+  background: rgba(255,255,255,0.7);
+  border: 1.5px solid var(--caramel);
+  border-radius: 50px;
+  color: var(--caramel2);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  padding: 14px 24px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 12px rgba(196,154,90,0.15);
+}
+.btn-again:hover {
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 4px 20px rgba(196,154,90,0.25);
+  transform: translateY(-1px);
+}
+.btn-again:active { transform:scale(0.97); }
+
+.btn-work {
+  background: transparent;
+  border: 1px solid rgba(122,92,62,0.2);
+  border-radius: 50px;
+  color: rgba(122,92,62,0.5);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.btn-work:hover { border-color: rgba(122,92,62,0.4); color: rgba(122,92,62,0.75); }
+.btn-work:active { transform: scale(0.97); }
+
+/* ─── Save overlay ─── */
+.save-overlay {
+  position: fixed; inset:0;
+  background: rgba(60,40,20,0.55);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: overlayIn 0.3s ease;
+}
+.save-overlay.visible { display:flex; }
+@keyframes overlayIn {
+  from{ opacity:0; } to{ opacity:1; }
+}
+.save-overlay img {
+  max-width: min(340px, 90vw);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  animation: imgPop 0.4s cubic-bezier(0.34,1.4,0.64,1) both;
+}
+@keyframes imgPop {
+  from{ transform:scale(0.85); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+.save-overlay-hint {
+  margin-top: 20px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 16px;
+  padding: 14px 24px;
+  text-align: center;
+  max-width: 300px;
+}
+.save-overlay-hint .hint-title {
+  font-size: 14px; font-weight:600; color: var(--brown2);
+  margin-bottom: 4px;
+}
+.save-overlay-hint .hint-desc {
+  font-size: 12px; color: var(--text2); line-height:1.6;
+}
+.save-overlay-close {
+  margin-top: 16px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 50px;
+  color: #fff;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  padding: 10px 32px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.save-overlay-close:hover { background: rgba(255,255,255,0.3); }
+
+/* ─── Toast ─── */
+.toast {
+  position: fixed; bottom:32px; left:50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--brown2);
+  color: var(--cream);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  padding: 12px 24px;
+  border-radius: 50px;
+  box-shadow: 0 8px 24px rgba(60,40,20,0.3);
+  z-index:300;
+  opacity:0;
+  transition: transform 0.4s cubic-bezier(0.34,1.3,0.64,1), opacity 0.4s ease;
+  white-space: nowrap;
+  max-width: 90vw;
+}
+.toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+/* ─── Animations ─── */
+@keyframes fadeDown {
+  from{ opacity:0; transform:translateY(-16px); }
+  to  { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeUp {
+  from{ opacity:0; transform:translateY(16px); }
+  to  { opacity:1; transform:translateY(0); }
+}
+
+/* ─── Decorative floating petals ─── */
+.petal {
+  position:fixed;
+  pointer-events:none; z-index:0;
+  font-size: 16px;
+  opacity:0;
+  animation: petalFall var(--pd,12s) linear infinite var(--pdelay,0s);
+}
+@keyframes petalFall {
+  0%  { transform:translateY(-30px) rotate(0deg) translateX(0); opacity:0; }
+  8%  { opacity:0.5; }
+  92% { opacity:0.3; }
+  100%{ transform:translateY(105vh) rotate(var(--pr,360deg)) translateX(var(--px,30px)); opacity:0; }
+}
 </style>
 </head>
 <body>
 
-<div class="stars" id="stars"></div>
-<div class="dust" id="dust"></div>
+<!-- Petals -->
+<div id="petals"></div>
 
-<div class="ripple-overlay" id="ripple">
-  <div class="ripple-circle"></div>
+<!-- Save overlay -->
+<div class="save-overlay" id="saveOverlay">
+  <img id="savedImg" src="" alt="答案卡片">
+  <div class="save-overlay-hint">
+    <div class="hint-title">📱 长按图片保存到相册</div>
+    <div class="hint-desc">保存后可以发给需要它的朋友 ✨<br>桌面端可右键另存为</div>
+  </div>
+  <button class="save-overlay-close" onclick="closeSaveOverlay()">关闭</button>
 </div>
 
+<!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<div class="scene">
-  <div class="title-area">
-    <div class="title-cn">答案之书</div>
-    <div class="title-en">THE BOOK OF ANSWERS</div>
-    <div class="title-divider"></div>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">The Book of Answers</div>
+    <div class="header-title">答案之书</div>
+    <div class="header-divider"><span>心诚则灵</span></div>
   </div>
 
-  <!-- Phase 1: Ask -->
-  <div class="phase active" id="phase-ask">
-    <div class="book-wrapper">
-      <div class="book" id="book">
-        <div class="book-cover">
-          <div class="cover-eye">
-            <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="40" cy="40" rx="35" ry="22" stroke="#c9973a" stroke-width="1.5" fill="none" opacity="0.4"/>
-              <ellipse cx="40" cy="40" rx="26" ry="14" stroke="#c9973a" stroke-width="1" fill="none" opacity="0.6"/>
-              <circle cx="40" cy="40" r="10" fill="#c9973a" opacity="0.9"/>
-              <circle cx="40" cy="40" r="5" fill="#2c1810"/>
-              <circle cx="43" cy="37" r="2" fill="rgba(255,255,255,0.6)"/>
-              <line x1="5" y1="40" x2="20" y2="40" stroke="#c9973a" stroke-width="0.8" opacity="0.4"/>
-              <line x1="60" y1="40" x2="75" y2="40" stroke="#c9973a" stroke-width="0.8" opacity="0.4"/>
-              <line x1="40" y1="5" x2="40" y2="18" stroke="#c9973a" stroke-width="0.8" opacity="0.3"/>
-              <line x1="40" y1="62" x2="40" y2="75" stroke="#c9973a" stroke-width="0.8" opacity="0.3"/>
-            </svg>
-          </div>
-          <div class="cover-ornament"></div>
-          <div class="cover-title-cn">答案之书</div>
-          <div class="cover-title-en">THE BOOK OF ANSWERS</div>
-          <div class="cover-ornament"></div>
-        </div>
-        <div class="page" id="page-content">
-          <div class="page-texture"></div>
-          <div class="answer-ornament-top">✦</div>
-          <div class="answer-text" id="answer-display">答案在此</div>
-          <div class="answer-sub" id="answer-sub">PAGE <span id="page-num">—</span></div>
-          <div class="answer-ornament-bottom">✦</div>
-          <div class="page-number" id="page-footer">— ✦ —</div>
-        </div>
+  <!-- Phase: Ask -->
+  <div id="phase-ask">
+    <div class="ask-card">
+      <span class="ask-icon">🌿</span>
+      <div class="ask-title">在心里默想一个问题</div>
+      <div class="ask-desc">
+        然后翻开这本书
+      </div>
+      <div class="breath-row">
+        <div class="breath-dot"></div>
+        <div class="breath-dot"></div>
+        <div class="breath-dot"></div>
+      </div>
+      <button class="reveal-btn" id="revealBtn" onclick="revealAnswer()">
+        ✦ &nbsp;翻开答案&nbsp; ✦
+      </button>
+    </div>
+  </div>
+
+  <!-- Phase: Answer -->
+  <div id="phase-answer">
+    <div class="answer-card-wrap">
+      <!-- Shareable card -->
+      <div class="answer-card" id="answerCard"
+           ontouchstart="startPress(event)"
+           ontouchend="endPress()"
+           ontouchcancel="endPress()"
+           onmousedown="startPress(event)"
+           onmouseup="endPress()"
+           onmouseleave="endPress()">
+        <div class="card-top-border"></div>
+        <div class="card-bottom-border"></div>
+        <div class="card-label">The Book of Answers</div>
+        <div class="card-ornament">❧</div>
+        <div class="card-answer" id="cardAnswer">—</div>
+        <div class="card-ornament">❧</div>
+        <div class="card-page" id="cardPage">第 — 页</div>
+        <div class="card-brand">答案之书 · 心诚则灵</div>
+        <!-- Press ring -->
+        <svg class="press-ring" id="pressRing">
+          <circle cx="35" cy="35" r="30" id="pressCircle"/>
+        </svg>
       </div>
     </div>
 
-    <div class="prompt-card">
-      <div class="prompt-label">ORACLE</div>
-      <div class="prompt-text">闭上眼睛，在心中默想<br>你最想得到解答的问题</div>
-      <div class="breath-dot"></div>
+    <div class="save-hint" id="saveHint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 15V3M8 11l4 4 4-4M19 21H5"/>
+      </svg>
+      <span>长按卡片 · 保存分享</span>
     </div>
 
-    <button class="reveal-btn" id="reveal-btn" onclick="handleReveal()">
-      <span>✦ 翻开答案 ✦</span>
-    </button>
-  </div>
-
-  <!-- Phase 2: Answer -->
-  <div class="phase" id="phase-answer">
-    <div style="height:20px"></div>
-    <div class="actions" id="action-btns" style="display:none">
-      <button class="btn-again" onclick="handleAgain()">↺ &nbsp;再问一次</button>
-      <button class="btn-work" onclick="handleWork()">好了好了，继续搬砖吧 →</button>
+    <div class="actions">
+      <button class="btn-again" onclick="askAgain()">↺ &nbsp;&nbsp;再问一次</button>
+      <button class="btn-work" onclick="goWork()">好了，继续搬砖吧 →</button>
     </div>
   </div>
 </div>
 
 <script>
+/* ── 100 answers ── */
 const ANSWERS = [
-  "是的，就是现在",
-  "顺其自然",
-  "不必再等待",
-  "答案藏在你心里",
-  "相信你的直觉",
-  "这一次，放手去做",
-  "时机已经成熟",
-  "比你想象的更快",
-  "别想太多，行动吧",
-  "一定会的",
-  "现在不是时候",
-  "不要勉强",
-  "先休息一下",
-  "换个角度看",
-  "你已经知道答案了",
-  "让时间来回答",
-  "是的",
-  "不是",
-  "也许吧",
-  "无需担心",
-  "专注于当下",
-  "这件事会过去的",
-  "有人在支持你",
-  "你比你以为的更强",
-  "放弃不需要的执念",
-  "今天不是最后一天",
-  "事情正在好转",
-  "说出来会更好",
-  "保持耐心",
-  "你走在正确的路上",
-  "做你感到快乐的事",
-  "这是一次好机会",
-  "不用解释，去做就好",
-  "先从小处开始",
-  "深呼吸，再决定",
-  "命运已经安排好了",
-  "问题本身就是答案",
-  "没有所谓完美时机",
-  "你值得拥有更好的",
-  "别害怕犯错",
-  "试试就知道了",
-  "停止等待别人的允许",
-  "你的感受是正确的",
-  "去做那件你一直拖延的事",
-  "放松，一切都好",
-  "这不是终点",
-  "惊喜即将到来",
-  "信任这个过程",
-  "有时候不知道也没关系",
-  "好好睡一觉再说"
+  "是的，就是现在","顺其自然","不必再等待","答案就在你心里","相信你的直觉",
+  "这一次，放手去做","时机已经成熟","比你想象的更快","别想太多，行动吧","一定会的",
+  "现在还不是时候","不要勉强","先好好休息一下","换个角度看","你早已知道答案了",
+  "让时间来回答","是的","不是","也许吧","无需担心",
+  "专注于当下","这件事会过去的","有人在默默支持你","你比你以为的更强大","放下不需要的执念",
+  "今天不是最后一天","事情正在悄悄好转","说出来会轻松很多","保持耐心","你走在正确的路上",
+  "做让你感到快乐的事","这是一次难得的机会","无需解释，去做就好","先从小处开始","深呼吸，再决定",
+  "一切自有安排","问题本身就是答案","没有所谓完美时机","你值得拥有更好的","别害怕犯错",
+  "试试就知道了","停止等待别人的许可","你的感受是正确的","去做那件你一直拖延的事","放松，一切都好",
+  "这不是终点","惊喜即将到来","信任这个过程","有时候不知道也没关系","好好睡一觉再说",
+  "放开手，反而会得到","那就去做吧","不需要所有人的认可","慢一点也没关系","你已经足够好了",
+  "转机在意想不到处","先照顾好自己","这件事比你想的简单","去问那个人吧","答案会自己来找你",
+  "不要和自己较劲","接受它，然后前进","这次选择会让你成长","有些事无需强求","你的直觉是对的",
+  "先迈出第一步","结果会让你惊喜","是时候放下了","它比你以为的更值得","停下来也是一种前进",
+  "有人正在想念你","不必急于一时","心静了，答案自来","改变从现在开始","只管去做",
+  "你不是一个人","这份担心是多余的","好事正在路上","别和过去较劲了","明天会更清晰",
+  "你的付出没有白费","这一页翻过去就好","相信好事会发生","不是失败，是经验","留给时间",
+  "你知道该怎么做","把它写下来","去找那个人谈谈","不用完美，先开始","大胆一点",
+  "你比昨天更勇敢了","放下评判，感受就好","这段路要自己走","没有什么大不了","轻轻的，放手"
 ];
 
-const WORK_TOASTS = [
-  "🧱 砖头不会自己搬的……",
-  "☕ 去倒杯咖啡，然后回来",
-  "💼 你的绩效正在凝视着你",
-  "🖥️ 摸鱼被发现了（开玩笑）",
-  "⏰ 时间不等人，老板也是",
-  "🌟 命运已定，工作继续",
-  "📊 PPT还没改好，朋友",
-  "🍜 早点下班就努力工作吧"
+const WORK_MSGS = [
+  "关掉了！工资正在望眼欲穿…… 💸",
+  "收到！砖头已在工位等候多时 🧱",
+  "已帮你定好「搬砖闹钟」⏰",
+  "命运已揭晓，KPI 还未完成 📊",
+  "再见！绩效表正在凝视你 👀",
+  "好的！老板的眼神比书更准 😅",
+  "明智之选，今天早点下班为目标 🌅",
+  "走吧走吧，摸鱼已超标 🐟"
 ];
 
-let currentPage = null;
+let pressTimer = null;
+let pressProgress = 0;
+let pressInterval = null;
+let isGenerating = false;
 
-// Generate stars
-const starsEl = document.getElementById('stars');
-for (let i = 0; i < 60; i++) {
-  const s = document.createElement('div');
-  s.className = 'star';
-  s.style.cssText = `
-    left:${Math.random()*100}%;top:${Math.random()*100}%;
-    width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;
-    --d:${2+Math.random()*4}s;--delay:${Math.random()*5}s;
-    --op:${0.3+Math.random()*0.5};
-  `;
-  starsEl.appendChild(s);
+/* ── Petals ── */
+const PETAL_EMOJIS = ['🌸','🌼','✿','❀','🌺'];
+const petalsEl = document.getElementById('petals');
+for(let i=0;i<12;i++){
+  const p=document.createElement('div');
+  p.className='petal';
+  p.textContent=PETAL_EMOJIS[Math.floor(Math.random()*PETAL_EMOJIS.length)];
+  p.style.cssText=`left:${Math.random()*100}%;--pd:${10+Math.random()*8}s;--pdelay:${Math.random()*10}s;--pr:${Math.random()>0.5?360:-360}deg;--px:${(Math.random()-0.5)*60}px;font-size:${12+Math.random()*10}px`;
+  petalsEl.appendChild(p);
 }
 
-// Generate dust
-const dustEl = document.getElementById('dust');
-for (let i = 0; i < 20; i++) {
-  const m = document.createElement('div');
-  m.className = 'mote';
-  m.style.cssText = `
-    left:${Math.random()*100}%;
-    --fd:${6+Math.random()*8}s;--fdelay:${Math.random()*8}s;
-    --fx:${(Math.random()-0.5)*60}px;
-  `;
-  dustEl.appendChild(m);
+/* ── Reveal answer ── */
+function revealAnswer(){
+  const idx = Math.floor(Math.random()*ANSWERS.length);
+  const page = Math.floor(Math.random()*498)+1;
+
+  document.getElementById('cardAnswer').textContent = ANSWERS[idx];
+  document.getElementById('cardPage').textContent = `第 ${page} 页`;
+
+  document.getElementById('phase-ask').style.animation = 'fadeUp 0.3s ease reverse both';
+  setTimeout(()=>{
+    document.getElementById('phase-ask').style.display = 'none';
+    const ans = document.getElementById('phase-answer');
+    ans.classList.add('visible');
+    document.getElementById('saveHint').style.opacity = '1';
+  }, 280);
 }
 
-function getRandomAnswer() {
-  const idx = Math.floor(Math.random() * ANSWERS.length);
-  const page = Math.floor(Math.random() * 498) + 1;
-  return { text: ANSWERS[idx], page };
+/* ── Ask again ── */
+function askAgain(){
+  const ans = document.getElementById('phase-answer');
+  ans.style.animation = 'fadeUp 0.3s ease reverse both';
+  setTimeout(()=>{
+    ans.classList.remove('visible');
+    ans.style.animation='';
+    const ask = document.getElementById('phase-ask');
+    ask.style.display='';
+    ask.style.animation='fadeUp 0.5s ease both';
+  },280);
 }
 
-function fireParticles(x, y) {
-  for (let i = 0; i < 14; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = 3 + Math.random() * 5;
-    const angle = (Math.random() * 360) * Math.PI / 180;
-    const dist = 40 + Math.random() * 80;
-    p.style.cssText = `
-      left:${x}px;top:${y}px;
-      width:${size}px;height:${size}px;
-      background:${Math.random()>0.5?'#c9973a':'#e8c878'};
-      --px:${Math.cos(angle)*dist}px;
-      --py:${Math.sin(angle)*dist - 40}px;
-      --pt:${0.5+Math.random()*0.6}s;
-    `;
-    document.body.appendChild(p);
-    setTimeout(() => p.remove(), 1200);
+/* ── Go work ── */
+function goWork(){
+  const msg = WORK_MSGS[Math.floor(Math.random()*WORK_MSGS.length)];
+  showToast(msg);
+  setTimeout(()=>{
+    // Try close, fallback to blank page
+    if(window.history.length>1){ window.close(); }
+    if(!window.closed){
+      window.location.href='about:blank';
+    }
+  }, 2200);
+}
+
+/* ── Long press to save ── */
+function startPress(e){
+  if(isGenerating) return;
+  e.preventDefault();
+
+  const card = document.getElementById('answerCard');
+  const ring = document.getElementById('pressRing');
+  const circle = document.getElementById('pressCircle');
+
+  card.classList.add('pressing');
+  ring.style.opacity='1';
+  pressProgress=0;
+  circle.style.strokeDashoffset='188';
+
+  const duration = 1800; // ms to complete
+  const interval = 30;
+  const step = 188/(duration/interval);
+
+  pressInterval = setInterval(()=>{
+    pressProgress += step;
+    const offset = Math.max(0, 188 - pressProgress);
+    circle.style.strokeDashoffset = offset;
+    if(pressProgress >= 188){
+      clearInterval(pressInterval);
+      endPress(true);
+      generateAndShow();
+    }
+  }, interval);
+}
+
+function endPress(completed=false){
+  clearInterval(pressInterval);
+  const card = document.getElementById('answerCard');
+  const ring = document.getElementById('pressRing');
+  const circle = document.getElementById('pressCircle');
+  card.classList.remove('pressing');
+  if(!completed){
+    ring.style.opacity='0';
+    circle.style.strokeDashoffset='188';
+    pressProgress=0;
   }
 }
 
-function handleReveal() {
-  const btn = document.getElementById('reveal-btn');
-  const rect = btn.getBoundingClientRect();
-  const cx = rect.left + rect.width/2;
-  const cy = rect.top + rect.height/2;
+/* ── Generate share image ── */
+async function generateAndShow(){
+  if(isGenerating) return;
+  isGenerating=true;
+  showToast('正在生成图片… 🌿');
 
-  // Ripple
-  const ripple = document.getElementById('ripple');
-  ripple.classList.remove('active');
-  void ripple.offsetWidth;
-  ripple.classList.add('active');
+  const card = document.getElementById('answerCard');
+  // Temporarily hide the ring
+  const ring = document.getElementById('pressRing');
+  ring.style.display='none';
 
-  fireParticles(cx, cy);
-  btn.disabled = true;
-  btn.style.opacity = '0.5';
+  try {
+    const canvas = await html2canvas(card,{
+      scale:3,
+      backgroundColor: null,
+      useCORS: true,
+      logging: false
+    });
+    const dataURL = canvas.toDataURL('image/png');
+    document.getElementById('savedImg').src = dataURL;
+    document.getElementById('saveOverlay').classList.add('visible');
+  } catch(err){
+    showToast('生成失败，请截图保存 📷');
+  }
 
-  const result = getRandomAnswer();
-  currentPage = result.page;
-
-  document.getElementById('answer-display').textContent = result.text;
-  document.getElementById('page-num').textContent = result.page;
-  document.getElementById('page-footer').textContent = `— ${result.page} —`;
-
-  // Flip book
-  const book = document.getElementById('book');
-  book.classList.add('flipping');
-
-  setTimeout(() => {
-    book.classList.remove('flipping');
-    book.classList.add('showing-page');
-    book.style.transform = 'rotateY(-180deg)';
-
-    // Move book to answer phase
-    setTimeout(() => {
-      const phaseAnswer = document.getElementById('phase-answer');
-      const phaseAsk = document.getElementById('phase-ask');
-      const bookWrapper = document.querySelector('.book-wrapper');
-      const promptCard = document.querySelector('.prompt-card');
-
-      // Animate out prompt card
-      promptCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      promptCard.style.opacity = '0';
-      promptCard.style.transform = 'translateY(10px)';
-      btn.style.transition = 'opacity 0.3s ease';
-      btn.style.opacity = '0';
-
-      setTimeout(() => {
-        phaseAsk.classList.remove('active');
-        phaseAnswer.classList.add('active');
-
-        // Move book
-        phaseAnswer.insertBefore(bookWrapper, phaseAnswer.firstChild);
-
-        const actionBtns = document.getElementById('action-btns');
-        actionBtns.style.display = 'flex';
-        actionBtns.style.flexDirection = 'column';
-        actionBtns.style.gap = '10px';
-        actionBtns.style.width = '100%';
-        actionBtns.style.animation = 'fadeUp 0.5s ease forwards';
-      }, 320);
-    }, 300);
-  }, 1200);
+  ring.style.display='';
+  ring.style.opacity='0';
+  pressProgress=0;
+  document.getElementById('pressCircle').style.strokeDashoffset='188';
+  isGenerating=false;
 }
 
-function handleAgain() {
-  const book = document.getElementById('book');
-  const phaseAsk = document.getElementById('phase-ask');
-  const phaseAnswer = document.getElementById('phase-answer');
-  const bookWrapper = document.querySelector('.book-wrapper');
-  const actionBtns = document.getElementById('action-btns');
-
-  // Flip back
-  book.style.transition = 'none';
-  book.classList.add('flipping-back');
-
-  actionBtns.style.opacity = '0';
-
-  setTimeout(() => {
-    book.classList.remove('flipping-back', 'showing-page');
-    book.style.transform = '';
-    book.style.transition = '';
-
-    phaseAnswer.classList.remove('active');
-    phaseAsk.classList.add('active');
-
-    // Restore book
-    const bookSlot = phaseAsk.querySelector('.prompt-card');
-    phaseAsk.insertBefore(bookWrapper, phaseAsk.firstChild);
-
-    const promptCard = phaseAsk.querySelector('.prompt-card');
-    promptCard.style.opacity = '1';
-    promptCard.style.transform = '';
-
-    const btn = document.getElementById('reveal-btn');
-    btn.style.opacity = '1';
-    btn.disabled = false;
-    actionBtns.style.opacity = '';
-    actionBtns.style.display = 'none';
-  }, 800);
+function closeSaveOverlay(){
+  document.getElementById('saveOverlay').classList.remove('visible');
 }
 
-function handleWork() {
-  const msg = WORK_TOASTS[Math.floor(Math.random() * WORK_TOASTS.length)];
-  showToast(msg);
-}
-
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
+/* ── Toast ── */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2800);
 }
 </script>
 </body>
