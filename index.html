@@ -5,438 +5,564 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>答案之书 · The Book of Answers</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Noto+Serif+SC:wght@300;400;600;900&family=IM+Fell+English:ital@0;1&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@300;400;600;900&family=IM+Fell+English:ital@0;1&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════ */
 :root {
-  --bg:      #f0e9de;
-  --bg2:     #e8dfd2;
-  --paper:   #f7f1e6;
-  --ink:     #1e1810;
-  --ink2:    #3a2e22;
-  --ink3:    #5c4a36;
-  --sepia:   #8b6f47;
-  --sepia2:  #6b5236;
-  --gold:    #a07840;
-  --gold2:   #c49a58;
-  --border:  rgba(139,111,71,0.20);
-  --sh:      rgba(30,24,16,0.09);
-  --sh2:     rgba(30,24,16,0.18);
+  --bg:       #f5ede0;
+  --bg2:      #ede3d4;
+  --paper:    #fdf8f0;
+  --ink:      #1c1510;
+  --ink2:     #362818;
+  --ink3:     #5a4230;
+  --sepia:    #8a6840;
+  --sepia2:   #6a5030;
+  --gold:     #b08840;
+  --gold2:    #d4aa60;
+  --gold3:    #f0cc88;
+  --rust:     #7a3820;
+  --border:   rgba(160,120,60,0.18);
+  --sh:       rgba(28,21,16,0.08);
+  --sh2:      rgba(28,21,16,0.16);
+  --sh3:      rgba(28,21,16,0.28);
+  --r:        6px;
 }
 
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html, body { min-height:100vh; overflow-x:hidden; }
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100vh;overflow-x:hidden;}
 
 body {
-  background: var(--bg);
-  font-family: 'Noto Serif SC', serif;
-  color: var(--ink);
+  font-family:'Noto Serif SC',serif;
+  color:var(--ink);
+  /* Layered warm gradient background */
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%,   rgba(220,185,120,0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 85% 100%,  rgba(200,160,90,0.22)  0%, transparent 55%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, #f8f0e3                0%, var(--bg)    100%);
+  position:relative;
 }
 
 /* Paper grain */
-body::before {
-  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
-  opacity:0.04;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  opacity:.038;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Edge vignette */
-body::after {
-  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
-  background: radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(16,10,4,0.16) 100%);
+/* Soft vignette */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(18,12,6,.14) 100%);
 }
 
-.app {
-  position:relative; z-index:1;
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+.app{
+  position:relative;z-index:1;
   min-height:100vh;
-  display:flex; flex-direction:column; align-items:center;
-  padding: 52px 24px 80px;
+  display:flex;flex-direction:column;align-items:center;
+  padding:56px 20px 88px;
 }
 
-/* ─── HEADER ─── */
-.header {
+/* ═══════════════════════════════════════════
+   DECORATIVE CORNER LINES (page frame feel)
+═══════════════════════════════════════════ */
+.frame-corner{
+  position:fixed;width:48px;height:48px;
+  pointer-events:none;z-index:2;opacity:.35;
+}
+.frame-corner::before,.frame-corner::after{
+  content:'';position:absolute;background:var(--gold);
+}
+.frame-corner::before{width:100%;height:1px;top:0;left:0;}
+.frame-corner::after {width:1px;height:100%;top:0;left:0;}
+.fc-tl{top:20px;left:20px;}
+.fc-tr{top:20px;right:20px;transform:scaleX(-1);}
+.fc-bl{bottom:20px;left:20px;transform:scaleY(-1);}
+.fc-br{bottom:20px;right:20px;transform:scale(-1);}
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+.header{
   text-align:center;
-  margin-bottom: 48px;
-  animation: fadeDown 1s ease both;
-}
-.header-en {
-  font-family: 'IM Fell English', serif;
-  font-style: italic;
-  font-size: clamp(11px,3vw,13px);
-  color: var(--sepia);
-  letter-spacing: 0.28em;
-  margin-bottom: 6px;
-  opacity: 0.75;
-}
-.header-title {
-  font-family: 'Playfair Display', 'Noto Serif SC', serif;
-  font-size: clamp(42px,12vw,64px);
-  font-weight: 700;
-  color: var(--ink2);
-  letter-spacing: 0.2em;
-  line-height: 1;
-  text-shadow: 1px 2px 0 rgba(255,255,255,0.55), 0 4px 14px rgba(30,24,16,0.1);
-}
-.header-sub {
-  display:flex; align-items:center; justify-content:center; gap:14px;
-  margin-top: 13px;
-}
-.sub-line {
-  width:36px; height:1px;
-  background: linear-gradient(90deg, transparent, var(--gold));
-}
-.sub-line:last-child { background: linear-gradient(90deg, var(--gold), transparent); }
-.sub-text {
-  font-family: 'IM Fell English', serif;
-  font-style: italic;
-  font-size: 13px;
-  color: var(--gold);
-  letter-spacing: 0.15em;
+  margin-bottom:52px;
+  animation:fadeDown .9s ease both;
 }
 
-/* ─── PHASE ASK ─── */
-#phase-ask {
-  display:flex; flex-direction:column; align-items:center;
-  width:100%; max-width:340px;
-  animation: fadeUp 0.8s 0.2s ease both;
+.header-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--ink2);
+  padding:5px 16px;border-radius:30px;
+  margin-bottom:18px;
+}
+.header-badge-dot{
+  width:4px;height:4px;border-radius:50%;
+  background:var(--gold2);
+}
+.header-badge-text{
+  font-family:'IM Fell English',serif;font-style:italic;
+  font-size:10px;color:var(--gold2);letter-spacing:.3em;
 }
 
-/* Decorative ornament block (replaces book cover) */
-.book-ornament {
-  display:flex; flex-direction:column; align-items:center;
-  margin-bottom: 32px;
-  animation: fadeUp 0.7s 0.1s ease both;
-}
-.orn-symbol {
-  font-size: 48px; line-height:1;
-  margin-bottom: 12px;
-  animation: floatSymbol 5s ease-in-out infinite;
-  filter: drop-shadow(0 2px 14px rgba(139,111,71,0.22));
-}
-@keyframes floatSymbol {
-  0%,100% { transform: translateY(0) rotate(-1.5deg); }
-  50%     { transform: translateY(-8px) rotate(1.5deg); }
-}
-.orn-rule {
-  width: 44px; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  opacity: 0.5; margin: 7px 0;
-}
-.orn-label {
-  font-family: 'IM Fell English', serif; font-style:italic;
-  font-size: 11px; color: var(--sepia);
-  letter-spacing: 0.25em; opacity: 0.6;
+.header-title{
+  font-family:'Playfair Display','Noto Serif SC',serif;
+  font-size:clamp(44px,13vw,72px);
+  font-weight:700;
+  color:var(--ink2);
+  letter-spacing:.18em;
+  line-height:1;
+  /* Subtle emboss */
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.7),
+    0 -1px 0 rgba(28,21,16,.06),
+    0 6px 20px rgba(28,21,16,.09);
 }
 
-/* Ask card */
-.ask-card {
-  background: var(--paper);
+.header-meta{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-top:14px;
+}
+.hm-line{
+  flex:1;max-width:52px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold));
+}
+.hm-line:last-child{background:linear-gradient(90deg,var(--gold),transparent);}
+.hm-text{
+  font-family:'IM Fell English',serif;font-style:italic;
+  font-size:12.5px;color:var(--gold);letter-spacing:.16em;
+}
+
+/* ═══════════════════════════════════════════
+   ORNAMENT (floating icon above ask card)
+═══════════════════════════════════════════ */
+.ornament{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  margin-bottom:28px;
+  animation:fadeUp .7s .1s ease both;
+}
+.orn-icon{
+  font-size:52px;line-height:1;
+  animation:floatOrn 5s ease-in-out infinite;
+  filter:drop-shadow(0 4px 16px rgba(176,136,64,.3));
+}
+@keyframes floatOrn{
+  0%,100%{transform:translateY(0) rotate(-2deg);}
+  50%    {transform:translateY(-10px) rotate(2deg);}
+}
+.orn-caption{
+  font-family:'IM Fell English',serif;font-style:italic;
+  font-size:10.5px;color:var(--sepia);letter-spacing:.22em;opacity:.6;
+}
+
+/* ═══════════════════════════════════════════
+   ASK CARD
+═══════════════════════════════════════════ */
+#phase-ask{
+  display:flex;flex-direction:column;align-items:center;
+  width:100%;max-width:360px;
+  animation:fadeUp .8s .2s ease both;
+}
+
+.ask-card{
+  background:var(--paper);
   border:1px solid var(--border);
-  border-radius:3px;
-  padding:26px 28px 22px;
-  width:100%; text-align:center;
-  box-shadow: 0 6px 24px var(--sh), 0 1px 3px var(--sh), inset 0 1px 0 rgba(255,255,255,0.85);
+  border-radius:var(--r);
+  padding:32px 28px 26px;
+  width:100%;text-align:center;
   position:relative;
-}
-.ask-card::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:2px;
-  background:linear-gradient(90deg, transparent 8%, var(--gold) 38%, var(--gold2) 60%, var(--gold) 80%, transparent);
-}
-.ask-text {
-  font-size:15px; color:var(--ink2);
-  line-height:2.1; font-weight:300;
-  letter-spacing:0.04em; margin-bottom:18px;
-}
-.ask-text strong { font-weight:600; color:var(--ink2); }
-.ask-text em { font-style:normal; color:var(--sepia); }
-
-.breath-row {
-  display:flex; align-items:center; justify-content:center; gap:7px;
-  margin-bottom:20px;
-}
-.breath-dot {
-  width:5px; height:5px; border-radius:50%;
-  background:var(--sepia);
-  animation:breathe 3s ease-in-out infinite;
-}
-.breath-dot:nth-child(2){ animation-delay:.5s; }
-.breath-dot:nth-child(3){ animation-delay:1s; }
-@keyframes breathe {
-  0%,100%{ transform:scale(0.5); opacity:0.2; }
-  50%{ transform:scale(1.1); opacity:0.65; }
+  box-shadow:
+    0 2px 0 rgba(255,255,255,.9) inset,
+    0 8px 32px var(--sh),
+    0 1px 4px var(--sh);
+  /* Subtle inner glow */
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(220,185,120,.12) 0%, transparent 60%);
 }
 
-.reveal-btn {
-  width:100%;
-  background:var(--ink2); border:none; border-radius:2px;
-  color:var(--gold2);
-  font-family:'Noto Serif SC',serif;
-  font-size:15px; font-weight:400;
-  letter-spacing:0.4em;
-  padding:15px 24px;
-  cursor:pointer; position:relative; overflow:hidden;
-  transition:background 0.22s, transform 0.12s, box-shadow 0.2s;
-  box-shadow:0 3px 14px rgba(30,24,16,0.28), inset 0 1px 0 rgba(255,255,255,0.04);
-}
-.reveal-btn::after {
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(135deg,rgba(196,154,88,0.08),transparent 60%);
-}
-.reveal-btn:hover { background:#110d08; box-shadow:0 5px 22px rgba(30,24,16,0.38); }
-.reveal-btn:active { transform:scale(0.98); }
-
-/* ─── PHASE ANSWER ─── */
-#phase-answer {
-  display:none; flex-direction:column; align-items:center;
-  width:100%; max-width:340px;
-}
-#phase-answer.visible { display:flex; }
-
-.answer-wrap {
-  width:100%;
-  animation: cardReveal 0.65s cubic-bezier(0.22,1,0.36,1) both;
-}
-@keyframes cardReveal {
-  from{ opacity:0; transform:translateY(22px) scale(0.96); }
-  to  { opacity:1; transform:translateY(0) scale(1); }
+/* Gold top bar */
+.ask-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2.5px;
+  border-radius:var(--r) var(--r) 0 0;
+  background:linear-gradient(90deg,transparent 5%,var(--sepia2) 25%,var(--gold2) 50%,var(--sepia2) 75%,transparent 95%);
 }
 
-.answer-card {
-  background:linear-gradient(155deg,#faf5ec 0%,#f4ead6 55%,#ede0c2 100%);
-  border-radius:3px;
-  padding:44px 32px 36px;
-  width:100%; text-align:center;
-  box-shadow:0 12px 40px var(--sh2), 0 2px 6px var(--sh), inset 0 1px 0 rgba(255,255,255,0.9);
-  position:relative; overflow:hidden;
-  cursor:pointer; user-select:none; -webkit-user-select:none;
-}
-.answer-card::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:3px;
-  background:linear-gradient(90deg, transparent 5%, var(--sepia2) 25%, var(--gold) 50%, var(--sepia2) 75%, transparent 95%);
-}
-.answer-card::after {
-  content:''; position:absolute; inset:12px;
-  border:1px solid rgba(139,111,71,0.13);
+/* Faint watermark diamond pattern */
+.ask-card::after{
+  content:'◇  ◇  ◇';
+  position:absolute;bottom:12px;left:0;right:0;
+  text-align:center;font-size:8px;
+  color:var(--border);letter-spacing:.6em;
   pointer-events:none;
 }
 
-/* Corner marks */
-.cr { position:absolute; width:14px; height:14px; opacity:0.35; }
-.cr-tl{top:8px;left:8px;border-top:1px solid var(--gold);border-left:1px solid var(--gold);}
-.cr-tr{top:8px;right:8px;border-top:1px solid var(--gold);border-right:1px solid var(--gold);}
-.cr-bl{bottom:8px;left:8px;border-bottom:1px solid var(--gold);border-left:1px solid var(--gold);}
-.cr-br{bottom:8px;right:8px;border-bottom:1px solid var(--gold);border-right:1px solid var(--gold);}
-
-.ac-label {
-  font-family:'IM Fell English',serif; font-style:italic;
-  font-size:11px; color:var(--sepia); letter-spacing:0.24em;
-  opacity:0.7; margin-bottom:18px; position:relative; z-index:1;
-}
-.ac-rule {
-  width:44px; height:1px;
-  background:linear-gradient(90deg,transparent,var(--sepia),transparent);
-  margin:0 auto 14px; opacity:0.45;
-}
-.ac-answer {
+.ask-title{
   font-family:'Playfair Display','Noto Serif SC',serif;
-  font-size:clamp(20px,6.5vw,28px); font-weight:600;
-  color:var(--ink2); line-height:1.75;
-  letter-spacing:0.06em; padding:4px 0 12px;
-  position:relative; z-index:1;
+  font-size:17px;font-weight:700;
+  color:var(--ink2);letter-spacing:.05em;
+  margin-bottom:6px;
 }
-.ac-page {
-  font-family:'IM Fell English',serif; font-style:italic;
-  font-size:12px; color:var(--sepia);
-  letter-spacing:0.18em; opacity:0.6;
-  position:relative; z-index:1;
+.ask-sub{
+  font-size:14px;color:var(--sepia);
+  font-weight:300;line-height:1.9;letter-spacing:.04em;
+  margin-bottom:20px;
 }
-.ac-brand {
-  font-size:9px; color:rgba(91,72,54,0.28);
-  letter-spacing:0.28em; margin-top:18px;
+
+/* Animated breath indicator */
+.breath-row{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  margin-bottom:22px;
+}
+.bd{
+  border-radius:50%;background:var(--gold);
+  animation:breath 3s ease-in-out infinite;
+}
+.bd:nth-child(1){width:5px;height:5px;}
+.bd:nth-child(2){width:7px;height:7px;animation-delay:.5s;}
+.bd:nth-child(3){width:5px;height:5px;animation-delay:1s;}
+@keyframes breath{
+  0%,100%{transform:scale(.55);opacity:.22;}
+  50%    {transform:scale(1.1); opacity:.85;}
+}
+
+.reveal-btn{
+  width:100%;
+  background:var(--ink2);border:none;
+  border-radius:calc(var(--r) - 2px);
+  color:var(--gold2);
+  font-family:'Noto Serif SC',serif;
+  font-size:15px;font-weight:400;
+  letter-spacing:.42em;
+  padding:16px 24px;
+  cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:background .22s,transform .12s,box-shadow .2s;
+  box-shadow:0 4px 16px var(--sh3),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.reveal-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(212,170,96,.1) 0%,transparent 55%);
+}
+.reveal-btn::after{
+  content:'';position:absolute;
+  left:-80%;top:0;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);
+  transform:skewX(-20deg);
+  transition:left .5s ease;
+}
+.reveal-btn:hover::after{left:130%;}
+.reveal-btn:hover{background:#120e09;box-shadow:0 6px 24px var(--sh3);}
+.reveal-btn:active{transform:scale(.975);}
+
+/* ═══════════════════════════════════════════
+   ANSWER PHASE
+═══════════════════════════════════════════ */
+#phase-answer{
+  display:none;flex-direction:column;align-items:center;
+  width:100%;max-width:360px;
+}
+#phase-answer.visible{display:flex;}
+
+.answer-wrap{
+  width:100%;
+  animation:cardReveal .7s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes cardReveal{
+  from{opacity:0;transform:translateY(26px) scale(.95);}
+  to  {opacity:1;transform:translateY(0)    scale(1);}
+}
+
+/* ─── Shareable answer card ─── */
+.answer-card{
+  background:linear-gradient(160deg,#fefaf2 0%,#f8eed8 50%,#f0e2c0 100%);
+  border-radius:var(--r);
+  padding:48px 32px 40px;
+  width:100%;text-align:center;
+  position:relative;overflow:hidden;
+  cursor:pointer;user-select:none;-webkit-user-select:none;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.95) inset,
+    0 16px 48px var(--sh2),
+    0 2px 8px var(--sh);
+}
+
+/* Top gradient border */
+.answer-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent 4%,var(--sepia2) 22%,var(--gold2) 50%,var(--sepia2) 78%,transparent 96%);
+}
+
+/* Ambient light blob top-right */
+.answer-card::after{
+  content:'';position:absolute;
+  top:-60px;right:-60px;
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(220,185,120,.18) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+/* Corner ornaments */
+.cr{position:absolute;width:18px;height:18px;opacity:.32;}
+.cr-tl{top:10px;left:10px;border-top:1.5px solid var(--gold);border-left:1.5px solid var(--gold);}
+.cr-tr{top:10px;right:10px;border-top:1.5px solid var(--gold);border-right:1.5px solid var(--gold);}
+.cr-bl{bottom:10px;left:10px;border-bottom:1.5px solid var(--gold);border-left:1.5px solid var(--gold);}
+.cr-br{bottom:10px;right:10px;border-bottom:1.5px solid var(--gold);border-right:1.5px solid var(--gold);}
+
+.ac-label{
+  font-family:'IM Fell English',serif;font-style:italic;
+  font-size:11px;color:var(--sepia);letter-spacing:.26em;
+  opacity:.65;margin-bottom:20px;
+  position:relative;z-index:1;
+}
+.ac-rule{
+  width:48px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--sepia),transparent);
+  margin:0 auto 16px;opacity:.4;
+}
+.ac-answer{
+  font-family:'Playfair Display','Noto Serif SC',serif;
+  font-size:clamp(20px,6.5vw,30px);font-weight:700;
+  color:var(--ink2);line-height:1.7;
+  letter-spacing:.06em;padding:4px 0 12px;
+  position:relative;z-index:1;
+}
+.ac-page{
+  font-family:'IM Fell English',serif;font-style:italic;
+  font-size:12px;color:var(--sepia);letter-spacing:.2em;
+  opacity:.6;position:relative;z-index:1;
+}
+.ac-brand{
+  font-size:9.5px;color:rgba(90,66,48,.28);
+  letter-spacing:.28em;margin-top:20px;
   font-family:'IM Fell English',serif;
-  position:relative; z-index:1;
+  position:relative;z-index:1;
 }
 
 /* Press ring */
-.press-ring {
-  position:absolute; top:50%; left:50%;
+.press-ring{
+  position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%);
-  width:62px; height:62px;
-  pointer-events:none; opacity:0; z-index:10;
+  width:66px;height:66px;
+  pointer-events:none;opacity:0;z-index:10;
 }
-.press-ring circle {
-  fill:none; stroke:var(--gold); stroke-width:2.2;
-  stroke-dasharray:172; stroke-dashoffset:172;
-  transform-origin:center; transform:rotate(-90deg);
+.press-ring circle{
+  fill:none;stroke:var(--gold2);stroke-width:2.5;
+  stroke-dasharray:176;stroke-dashoffset:176;
+  transform-origin:center;transform:rotate(-90deg);
+  transition:stroke-dashoffset .05s linear;
 }
 
 /* Save hint */
-.save-hint {
-  display:flex; align-items:center; justify-content:center; gap:5px;
-  margin-top:9px; font-size:11px; color:var(--sepia);
-  letter-spacing:0.08em;
-  opacity:0; animation: fadeUp 0.5s 0.9s ease both;
+.save-hint{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  margin-top:11px;
+  font-size:11px;color:var(--sepia);letter-spacing:.08em;
+  opacity:0;animation:fadeUp .5s .9s ease both;
 }
-.save-hint svg { width:12px; height:12px; }
+.save-hint svg{width:12px;height:12px;}
 
-/* Action buttons */
-.actions {
-  display:flex; flex-direction:column; gap:10px;
-  width:100%; margin-top:16px;
-  animation: fadeUp 0.5s 0.45s ease both;
+/* ═══════════════════════════════════════════
+   ACTION BUTTONS
+═══════════════════════════════════════════ */
+.actions{
+  display:flex;flex-direction:column;gap:10px;
+  width:100%;margin-top:18px;
+  animation:fadeUp .5s .4s ease both;
 }
-.btn-again {
+
+.btn-again{
   background:var(--paper);
-  border:1.5px solid var(--sepia2); border-radius:2px;
+  border:1.5px solid var(--sepia2);
+  border-radius:calc(var(--r) - 2px);
   color:var(--ink2);
   font-family:'Noto Serif SC',serif;
-  font-size:14px; font-weight:400; letter-spacing:0.22em;
-  padding:13px 20px; cursor:pointer;
-  transition:all 0.2s ease;
-  box-shadow:0 2px 8px var(--sh);
+  font-size:14px;font-weight:400;letter-spacing:.24em;
+  padding:14px 20px;cursor:pointer;
+  transition:all .22s ease;
+  box-shadow:0 2px 8px var(--sh),inset 0 1px 0 rgba(255,255,255,.8);
 }
-.btn-again:hover { background:#fff; box-shadow:0 4px 16px var(--sh); transform:translateY(-1px); }
-.btn-again:active { transform:scale(0.98); }
+.btn-again:hover{
+  background:#fff;
+  border-color:var(--sepia);
+  box-shadow:0 4px 18px var(--sh2);
+  transform:translateY(-1px);
+}
+.btn-again:active{transform:scale(.975);}
 
-.btn-work {
+.btn-work{
   background:transparent;
-  border:1px solid rgba(91,72,54,0.18); border-radius:2px;
-  color:rgba(91,72,54,0.42);
+  border:1px solid rgba(90,66,48,.16);
+  border-radius:calc(var(--r) - 2px);
+  color:rgba(90,66,48,.42);
   font-family:'Noto Sans SC',sans-serif;
-  font-size:12px; font-weight:300; letter-spacing:0.12em;
-  padding:11px 20px; cursor:pointer;
-  transition:all 0.2s ease;
+  font-size:12px;font-weight:300;letter-spacing:.12em;
+  padding:11px 20px;cursor:pointer;
+  transition:all .22s ease;
 }
-.btn-work:hover { border-color:rgba(91,72,54,0.38); color:rgba(91,72,54,0.68); }
-.btn-work:active { transform:scale(0.98); }
+.btn-work:hover{border-color:rgba(90,66,48,.35);color:rgba(90,66,48,.7);}
+.btn-work:active{transform:scale(.975);}
 
-/* ─── SAVE OVERLAY ─── */
-.save-overlay {
-  position:fixed; inset:0;
-  background:rgba(12,8,4,0.72);
-  backdrop-filter:blur(9px);
-  z-index:200;
-  display:none; flex-direction:column;
-  align-items:center; justify-content:center;
-  padding:28px;
-  animation:overlayIn 0.3s ease;
-}
-.save-overlay.visible{ display:flex; }
-@keyframes overlayIn{ from{opacity:0;} to{opacity:1;} }
-
-.save-overlay img {
-  max-width:min(316px,88vw);
-  border-radius:4px;
-  box-shadow:0 24px 64px rgba(0,0,0,0.58);
-  animation:imgPop 0.4s cubic-bezier(0.34,1.3,0.64,1) both;
-}
-@keyframes imgPop {
-  from{ transform:scale(0.84) translateY(10px); opacity:0; }
-  to  { transform:scale(1) translateY(0); opacity:1; }
-}
-.save-box {
-  background:var(--paper); border-radius:3px;
-  border:1px solid var(--border);
-  padding:15px 22px; text-align:center;
-  max-width:300px; margin-top:14px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.2);
-}
-.save-box-t { font-size:14px; font-weight:600; color:var(--ink2); margin-bottom:4px; }
-.save-box-d { font-size:12px; color:var(--ink3); line-height:1.75; }
-.save-close {
-  margin-top:14px;
-  background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.22);
-  border-radius:2px; color:rgba(255,255,255,0.7);
-  font-family:'Noto Serif SC',serif; font-size:13px;
-  letter-spacing:0.18em; padding:10px 38px; cursor:pointer;
-  transition:background 0.2s;
-}
-.save-close:hover{ background:rgba(255,255,255,0.18); }
-
-/* ─── CAT OVERLAY ─── */
-.cat-overlay {
-  position:fixed; inset:0;
-  background:rgba(12,8,4,0.75);
+/* ═══════════════════════════════════════════
+   SAVE OVERLAY
+═══════════════════════════════════════════ */
+.save-overlay{
+  position:fixed;inset:0;
+  background:rgba(12,8,4,.72);
   backdrop-filter:blur(10px);
   z-index:200;
-  display:none; flex-direction:column;
-  align-items:center; justify-content:center;
-  padding:32px; gap:18px;
-  animation:overlayIn 0.35s ease;
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:28px;
+  animation:overlayIn .3s ease;
 }
-.cat-overlay.visible{ display:flex; }
+.save-overlay.visible{display:flex;}
+@keyframes overlayIn{from{opacity:0;}to{opacity:1;}}
 
-.cat-gif-box {
-  width:min(260px,80vw); height:min(260px,80vw);
-  border-radius:16px; overflow:hidden;
-  box-shadow:0 20px 60px rgba(0,0,0,0.55);
-  background:#1a1208;
-  display:flex; align-items:center; justify-content:center;
-  animation:imgPop 0.45s cubic-bezier(0.34,1.3,0.64,1) both;
-  position:relative;
+.save-overlay img{
+  max-width:min(320px,88vw);
+  border-radius:var(--r);
+  box-shadow:0 24px 64px rgba(0,0,0,.55);
+  animation:imgPop .42s cubic-bezier(.34,1.3,.64,1) both;
+}
+@keyframes imgPop{
+  from{transform:scale(.84) translateY(10px);opacity:0;}
+  to  {transform:scale(1)   translateY(0);   opacity:1;}
 }
 
-/* ── CSS Cat ── */
-.css-cat {
-  position:relative;
-  width:120px; height:120px;
-  animation: catBounce 0.5s ease-in-out infinite alternate;
-}
-@keyframes catBounce {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-10px); }
-}
-.css-cat svg { width:100%; height:100%; overflow:visible; }
-
-.cat-caption {
-  background:var(--paper); border-radius:3px;
+.save-box{
+  background:var(--paper);border-radius:var(--r);
   border:1px solid var(--border);
-  padding:13px 22px; text-align:center;
+  padding:15px 22px;text-align:center;
+  max-width:300px;margin-top:14px;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+}
+.save-box-t{font-size:14px;font-weight:600;color:var(--ink2);margin-bottom:4px;}
+.save-box-d{font-size:12px;color:var(--ink3);line-height:1.75;}
+
+.overlay-close{
+  margin-top:14px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
+  border-radius:calc(var(--r) - 2px);color:rgba(255,255,255,.72);
+  font-family:'Noto Serif SC',serif;font-size:13px;
+  letter-spacing:.18em;padding:10px 38px;cursor:pointer;
+  transition:background .2s;
+}
+.overlay-close:hover{background:rgba(255,255,255,.18);}
+
+/* ═══════════════════════════════════════════
+   PET OVERLAY
+═══════════════════════════════════════════ */
+.pet-overlay{
+  position:fixed;inset:0;
+  background:rgba(12,8,4,.75);
+  backdrop-filter:blur(12px);
+  z-index:200;
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:32px;gap:16px;
+  animation:overlayIn .35s ease;
+}
+.pet-overlay.visible{display:flex;}
+
+.pet-stage{
+  width:min(260px,78vw);height:min(260px,78vw);
+  border-radius:20px;
+  background:linear-gradient(145deg,#1e1610,#120e08);
+  border:1px solid rgba(176,136,64,.15);
+  box-shadow:0 24px 64px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04);
+  display:flex;align-items:center;justify-content:center;
+  animation:imgPop .45s cubic-bezier(.34,1.3,.64,1) both;
+  overflow:hidden;
+  position:relative;
+}
+/* Ambient glow inside stage */
+.pet-stage::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 100%,rgba(176,136,64,.08) 0%,transparent 60%);
+}
+
+.pet-stage svg{
+  width:72%;height:72%;
+  filter:drop-shadow(0 4px 16px rgba(0,0,0,.4));
+}
+
+.pet-caption{
+  background:var(--paper);border-radius:var(--r);
+  border:1px solid var(--border);
+  padding:14px 22px;text-align:center;
   max-width:300px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.2);
-  animation:fadeUp 0.4s 0.2s ease both;
+  box-shadow:0 4px 16px rgba(0,0,0,.18);
+  animation:fadeUp .4s .18s ease both;
 }
-.cat-caption-txt {
+.pet-caption-txt{
   font-family:'Noto Serif SC',serif;
-  font-size:14px; color:var(--ink2);
-  line-height:1.85; letter-spacing:0.04em;
+  font-size:14px;color:var(--ink2);
+  line-height:1.85;letter-spacing:.04em;
 }
-.cat-close {
-  background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.22);
-  border-radius:2px; color:rgba(255,255,255,0.7);
-  font-family:'Noto Serif SC',serif; font-size:13px;
-  letter-spacing:0.14em; padding:10px 32px; cursor:pointer;
-  transition:background 0.2s;
-  animation:fadeUp 0.4s 0.35s ease both;
-}
-.cat-close:hover{ background:rgba(255,255,255,0.18); }
 
-/* ─── TOAST ─── */
-.toast {
-  position:fixed; bottom:36px; left:50%;
+.pet-close{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
+  border-radius:calc(var(--r) - 2px);color:rgba(255,255,255,.72);
+  font-family:'Noto Serif SC',serif;font-size:13px;
+  letter-spacing:.14em;padding:10px 32px;cursor:pointer;
+  transition:background .2s;
+  animation:fadeUp .4s .32s ease both;
+}
+.pet-close:hover{background:rgba(255,255,255,.18);}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+.toast{
+  position:fixed;bottom:36px;left:50%;
   transform:translateX(-50%) translateY(80px);
-  background:var(--ink2); color:var(--gold2);
+  background:var(--ink2);color:var(--gold2);
   font-family:'Noto Serif SC',serif;
-  font-size:13px; letter-spacing:0.1em;
-  padding:11px 24px; border-radius:2px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.32);
-  z-index:300; opacity:0;
-  transition:transform 0.4s cubic-bezier(0.34,1.3,0.64,1), opacity 0.4s ease;
-  white-space:nowrap; max-width:90vw;
+  font-size:13px;letter-spacing:.1em;
+  padding:11px 24px;border-radius:30px;
+  box-shadow:0 8px 24px var(--sh3);
+  z-index:300;opacity:0;
+  transition:transform .42s cubic-bezier(.34,1.3,.64,1),opacity .4s ease;
+  white-space:nowrap;max-width:90vw;
 }
-.toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 
-@keyframes fadeDown{
-  from{opacity:0;transform:translateY(-18px);}
-  to{opacity:1;transform:translateY(0);}
-}
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(16px);}
-  to{opacity:1;transform:translateY(0);}
-}
+/* ═══════════════════════════════════════════
+   KEYFRAMES
+═══════════════════════════════════════════ */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeUp  {from{opacity:0;transform:translateY(18px); }to{opacity:1;transform:translateY(0);}}
+
+/* ═══════════════════════════════════════════
+   PET SVG SHARED ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes petBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+@keyframes tailWagR {from{transform:rotate(-20deg);}to{transform:rotate(20deg);}}
+@keyframes tailWagL {from{transform:rotate(20deg);}to{transform:rotate(-20deg);}}
+@keyframes blink    {0%,88%,100%{transform:scaleY(1);}93%{transform:scaleY(.08);}}
+@keyframes pawTypeU {from{transform:translateY(0);}to{transform:translateY(-6px);}}
+@keyframes shake    {0%,100%{transform:rotate(-3deg);}50%{transform:rotate(3deg);}}
+@keyframes zFloat   {0%{transform:translate(0,0);opacity:0;}30%{opacity:.9;}100%{transform:translate(12px,-24px);opacity:0;}}
+@keyframes waveArm  {from{transform:rotate(-22deg);}to{transform:rotate(22deg);}}
+@keyframes earPerk  {0%,80%,100%{transform:rotate(0);}85%{transform:rotate(-12deg);}}
+@keyframes noseSniff{0%,100%{transform:scale(1);}50%{transform:scale(1.25);}}
+@keyframes eyeShine {0%,100%{opacity:.6;}50%{opacity:1;}}
+@keyframes heartPop {0%{transform:scale(0);opacity:0;}50%{transform:scale(1.2);opacity:1;}100%{transform:scale(1) translateY(-10px);opacity:0;}}
 </style>
 </head>
 <body>
+
+<!-- Page frame corners -->
+<div class="frame-corner fc-tl"></div>
+<div class="frame-corner fc-tr"></div>
+<div class="frame-corner fc-bl"></div>
+<div class="frame-corner fc-br"></div>
 
 <!-- Save overlay -->
 <div class="save-overlay" id="saveOverlay">
@@ -445,16 +571,16 @@ body::after {
     <div class="save-box-t">📖 长按图片保存到相册</div>
     <div class="save-box-d">桌面端可右键另存为<br>保存后发给需要它的人 ✨</div>
   </div>
-  <button class="save-close" onclick="closeSaveOverlay()">关 闭</button>
+  <button class="overlay-close" onclick="closeSaveOverlay()">关 闭</button>
 </div>
 
-<!-- Cat overlay -->
-<div class="cat-overlay" id="catOverlay">
-  <div class="cat-gif-box" id="catGifBox"></div>
-  <div class="cat-caption">
-    <div class="cat-caption-txt" id="catCaption"></div>
+<!-- Pet overlay -->
+<div class="pet-overlay" id="petOverlay">
+  <div class="pet-stage" id="petStage"></div>
+  <div class="pet-caption">
+    <div class="pet-caption-txt" id="petCaption"></div>
   </div>
-  <button class="cat-close" onclick="closeCatOverlay()">我知道了，这就去搬砖 →</button>
+  <button class="pet-close" onclick="closePetOverlay()">我知道了，这就去搬砖 →</button>
 </div>
 
 <!-- Toast -->
@@ -463,33 +589,33 @@ body::after {
 <div class="app">
 
   <!-- Header -->
-  <div class="header">
-    <div class="header-en">The Book of Answers</div>
-    <div class="header-title">答案之书</div>
-    <div class="header-sub">
-      <div class="sub-line"></div>
-      <div class="sub-text">宇宙来回答</div>
-      <div class="sub-line"></div>
+  <header class="header">
+    <div class="header-badge">
+      <div class="header-badge-dot"></div>
+      <div class="header-badge-text">The Book of Answers</div>
+      <div class="header-badge-dot"></div>
     </div>
-  </div>
+    <div class="header-title">答案之书</div>
+    <div class="header-meta">
+      <div class="hm-line"></div>
+      <div class="hm-text">宇宙来回答</div>
+      <div class="hm-line"></div>
+    </div>
+  </header>
 
   <!-- Phase: Ask -->
   <div id="phase-ask">
-    <div class="book-ornament">
-      <div class="orn-symbol">📖</div>
-      <div class="orn-rule"></div>
-      <div class="orn-label">open the book · find your answer</div>
+    <div class="ornament">
+      <div class="orn-icon">📖</div>
+      <div class="orn-caption">open the book · find your answer</div>
     </div>
-
     <div class="ask-card">
-      <div class="ask-text">
-        <strong>在心里默想一个问题</strong><br>
-        <em>然后翻开这本书</em>
-      </div>
+      <div class="ask-title">在心里默想一个问题</div>
+      <div class="ask-sub">然后翻开这本书</div>
       <div class="breath-row">
-        <div class="breath-dot"></div>
-        <div class="breath-dot"></div>
-        <div class="breath-dot"></div>
+        <div class="bd"></div>
+        <div class="bd"></div>
+        <div class="bd"></div>
       </div>
       <button class="reveal-btn" onclick="revealAnswer()">翻 开 答 案</button>
     </div>
@@ -511,7 +637,7 @@ body::after {
         <div class="ac-page" id="cardPage">p. —</div>
         <div class="ac-brand">答案之书 · 宇宙来回答</div>
         <svg class="press-ring" id="pressRing">
-          <circle cx="31" cy="31" r="27.5" id="pressCircle"/>
+          <circle cx="33" cy="33" r="28" id="pressCircle"/>
         </svg>
       </div>
     </div>
@@ -529,32 +655,48 @@ body::after {
     </div>
   </div>
 
-</div>
+</div><!-- /app -->
 
 <script>
+/* ═══════════════════════════════
+   100 ANSWERS
+═══════════════════════════════ */
 const ANSWERS = [
-  "是的，就是现在","顺其自然","不必再等待","答案就在你心里","相信你的直觉",
-  "这一次，放手去做","时机已经成熟","比你想象的更快","别想太多，行动吧","一定会的",
-  "现在还不是时候","不要勉强","先好好休息一下","换个角度看","你早已知道答案了",
-  "让时间来回答","是的","不是","也许吧","无需担心",
-  "专注于当下","这件事会过去的","有人在默默支持你","你比你以为的更强大","放下不需要的执念",
-  "今天不是最后一天","事情正在悄悄好转","说出来会轻松很多","保持耐心","你走在正确的路上",
-  "做让你感到快乐的事","这是一次难得的机会","无需解释，去做就好","先从小处开始","深呼吸，再决定",
-  "一切自有安排","问题本身就是答案","没有所谓完美时机","你值得拥有更好的","别害怕犯错",
-  "试试就知道了","停止等待别人的许可","你的感受是正确的","去做那件你一直拖延的事","放松，一切都好",
-  "这不是终点","惊喜即将到来","信任这个过程","有时候不知道也没关系","好好睡一觉再说",
-  "放开手，反而会得到","那就去做吧","不需要所有人的认可","慢一点也没关系","你已经足够好了",
-  "转机在意想不到处","先照顾好自己","这件事比你想的简单","去问那个人吧","答案会自己来找你",
-  "不要和自己较劲","接受它，然后前进","这次选择会让你成长","有些事无需强求","你的直觉是对的",
-  "先迈出第一步","结果会让你惊喜","是时候放下了","它比你以为的更值得","停下来也是一种前进",
-  "有人正在想念你","不必急于一时","心静了，答案自来","改变从现在开始","只管去做",
-  "你不是一个人","这份担心是多余的","好事正在路上","别和过去较劲了","明天会更清晰",
-  "你的付出没有白费","这一页翻过去就好","相信好事会发生","不是失败，是经验","留给时间",
-  "你知道该怎么做","把它写下来","去找那个人谈谈","不用完美，先开始","大胆一点",
-  "你比昨天更勇敢了","放下评判，感受就好","这段路要自己走","没有什么大不了","轻轻的，放手"
+  // Decisive yes/no/maybe
+  "是的，就是现在","不是","也许吧","一定会的","绝对不会",
+  "值得等待","时机未到","时机已经成熟","现在还不是时候","毫无疑问",
+  // Action-oriented
+  "顺其自然","不必再等待","放手去做","先迈出第一步","从小处开始",
+  "别想太多，行动吧","无需解释，去做就好","停止等待别人的许可","大胆一点","只管去做",
+  // Reassurance
+  "你走在正确的路上","你早已知道答案了","相信你的直觉","你的感受是正确的","你不是一个人",
+  "有人在默默支持你","你比你以为的更强大","你已经足够好了","你值得拥有更好的","你比昨天更勇敢了",
+  // Time & patience
+  "让时间来回答","保持耐心","慢一点也没关系","留给时间","明天会更清晰",
+  "不必急于一时","这件事会过去的","事情正在悄悄好转","答案会自己来找你","好事正在路上",
+  // Let go
+  "放下不需要的执念","轻轻的，放手","接受它，然后前进","这一页翻过去就好","别和过去较劲了",
+  "放开手，反而会得到","是时候放下了","有些事无需强求","放下评判，感受就好","不要和自己较劲",
+  // Self-care
+  "先好好休息一下","先照顾好自己","好好睡一觉再说","去喝杯水，整理一下思绪","深呼吸，再决定",
+  "专注于当下","心静了，答案自来","做让你感到快乐的事","换个角度看","停下来也是一种前进",
+  // Connection
+  "去问那个人吧","去找那个人谈谈","说出来会轻松很多","有人正在想念你","把它写下来",
+  "不需要所有人的认可","不要勉强","去做那件你一直拖延的事","你知道该怎么做","告诉他／她",
+  // Growth & meaning
+  "这次选择会让你成长","不是失败，是经验","没有所谓完美时机","问题本身就是答案","一切自有安排",
+  "这段路要自己走","这件事比你想的简单","它比你以为的更值得","这是一次难得的机会","改变从现在开始",
+  // Hope & surprise
+  "惊喜即将到来","信任这个过程","相信好事会发生","这不是终点","无需担心",
+  "没有什么大不了","今天不是最后一天","你的付出没有白费","结果会让你惊喜","转机在意想不到处",
+  // Cosmic / poetic
+  "宇宙听见了","答案就在你心里","有时候不知道也没关系","这份担心是多余的","不用完美，先开始",
+  "那就去做吧","此刻即答案","万物皆有时","随它去吧","静待花开"
 ];
 
-/* 20 random captions */
+/* ═══════════════════════════════
+   20 WORK CAPTIONS
+═══════════════════════════════ */
 const CAPTIONS = [
   "🐱 你在摸鱼，但代码也在盯着你…",
   "😼 再玩 1 分钟就回去工作吧！",
@@ -562,175 +704,470 @@ const CAPTIONS = [
   "😾 老板的眼神比这本书更准，快回去吧",
   "🙀 你的 KPI 正在发出哀嚎声…",
   "😸 宇宙已回答，薪资还没到账呢",
-  "🐈 答案收到了，PPT 还没写完哦",
-  "😹 摸鱼被发现，后果自负（开玩笑）",
+  "🐶 答案收到了，PPT 还没写完哦",
+  "🐕 摸鱼快乐，但 deadline 会哭泣",
   "🐱 命运已指引，但 deadline 不等人",
   "😺 好了好了，去搬砖，今晚早点下班",
-  "🙈 继续摸？老板已上线……",
+  "🐩 继续摸？老板已上线……",
   "😻 宇宙说：去干活，它会保佑你的",
-  "🐾 本猫已替你算好了，快回工位",
-  "😾 绩效表正在凝视你，快跑",
+  "🐾 本喵已替你算好，快回工位",
+  "🐶 绩效表正在凝视你，快跑！",
   "🐈‍⬛ 再摸 5 秒，计时开始：5…4…3…",
   "😼 工资是搬出来的，不是摸出来的",
-  "🐱 猫猫督促你：去喝杯水，然后干活",
+  "🐕‍🦺 汪汪提醒：去喝水，然后干活",
   "🙀 系统检测到摸鱼行为，已记录在案",
-  "😸 翻完书了？很好，现在翻一下需求文档",
-  "🐾 下班倒计时已启动，努力冲刺！"
+  "😸 翻完书了？很好，现在翻需求文档",
+  "🐾 下班倒计时已启动，冲鸭！"
 ];
 
-/* 5 CSS animated cat SVG variants */
-const CAT_SVGS = [
-  /* Sitting cat — blinks + tail wag */
-  `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <style>
-      .ey{animation:blink 3.5s ease-in-out infinite;}
-      .tl{animation:wag 1s ease-in-out infinite alternate;transform-origin:72px 78px;}
-      @keyframes blink{0%,88%,100%{transform:scaleY(1)}93%{transform:scaleY(0.08)}}
-      @keyframes wag{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
-    </style>
-    <ellipse cx="50" cy="70" rx="22" ry="19" fill="#e8c88a"/>
-    <circle cx="50" cy="43" r="20" fill="#e8c88a"/>
-    <polygon points="34,27 28,11 42,23" fill="#e8c88a"/>
-    <polygon points="35,26 30,12 42,23" fill="#d4956a" opacity=".55"/>
-    <polygon points="66,27 72,11 58,23" fill="#e8c88a"/>
-    <polygon points="65,26 70,12 58,23" fill="#d4956a" opacity=".55"/>
-    <g class="ey">
-      <ellipse cx="43" cy="41" rx="4" ry="4.5" fill="#2c1810"/>
-      <ellipse cx="57" cy="41" rx="4" ry="4.5" fill="#2c1810"/>
-      <circle cx="44.5" cy="39.5" r="1.2" fill="white"/>
-      <circle cx="58.5" cy="39.5" r="1.2" fill="white"/>
-    </g>
-    <polygon points="50,48 48,50 52,50" fill="#d4956a"/>
-    <path d="M48,50 Q47,53 45,53 M52,50 Q53,53 55,53" stroke="#c9973a" stroke-width="1" fill="none" stroke-linecap="round"/>
-    <line x1="30" y1="48" x2="46" y2="50" stroke="#c9973a" stroke-width="0.8" opacity=".5"/>
-    <line x1="30" y1="52" x2="46" y2="52" stroke="#c9973a" stroke-width="0.8" opacity=".5"/>
-    <line x1="54" y1="50" x2="70" y2="48" stroke="#c9973a" stroke-width="0.8" opacity=".5"/>
-    <line x1="54" y1="52" x2="70" y2="52" stroke="#c9973a" stroke-width="0.8" opacity=".5"/>
-    <ellipse cx="38" cy="87" rx="8" ry="5" fill="#e0b87a"/>
-    <ellipse cx="62" cy="87" rx="8" ry="5" fill="#e0b87a"/>
-    <path class="tl" d="M72,79 Q88,68 84,54 Q82,46 76,50" stroke="#e8c88a" stroke-width="7" fill="none" stroke-linecap="round"/>
-  </svg>`,
+/* ═══════════════════════════════
+   5 CATS (SVG)
+═══════════════════════════════ */
+const CATS = [
 
-  /* Typing cat */
-  `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <style>
-      .pl{animation:pawL 0.45s ease-in-out infinite alternate;}
-      .pr{animation:pawR 0.45s 0.22s ease-in-out infinite alternate;}
-      .sc{animation:flicker 2s ease-in-out infinite;}
-      @keyframes pawL{from{transform:translateY(0)}to{transform:translateY(-5px)}}
-      @keyframes pawR{from{transform:translateY(0)}to{transform:translateY(-5px)}}
-      @keyframes flicker{0%,100%{opacity:1}50%{opacity:.82}}
-    </style>
-    <rect x="18" y="71" width="64" height="6" rx="2" fill="#3a2e22"/>
-    <rect x="22" y="55" width="56" height="18" rx="2" fill="#2c1810"/>
-    <rect x="24" y="57" width="52" height="14" rx="1" fill="#1a5276" class="sc"/>
-    <rect x="26" y="59" width="22" height="2" rx="1" fill="#5dade2" opacity=".7"/>
-    <rect x="26" y="63" width="32" height="2" rx="1" fill="#5dade2" opacity=".45"/>
-    <rect x="26" y="67" width="14" height="2" rx="1" fill="#58d68d" opacity=".6"/>
-    <ellipse cx="50" cy="59" rx="18" ry="13" fill="#e8c88a"/>
-    <circle cx="50" cy="37" r="17" fill="#e8c88a"/>
-    <polygon points="36,23 31,9 43,20" fill="#e8c88a"/>
-    <polygon points="37,22 33,10 43,20" fill="#d4956a" opacity=".55"/>
-    <polygon points="64,23 69,9 57,20" fill="#e8c88a"/>
-    <polygon points="63,22 67,10 57,20" fill="#d4956a" opacity=".55"/>
-    <path d="M39 35 Q43 32 47 35" stroke="#2c1810" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-    <path d="M53 35 Q57 32 61 35" stroke="#2c1810" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-    <polygon points="50,41 48,43 52,43" fill="#d4956a"/>
-    <line x1="30" y1="41" x2="46" y2="43" stroke="#c9973a" stroke-width="0.8" opacity=".45"/>
-    <line x1="54" y1="43" x2="70" y2="41" stroke="#c9973a" stroke-width="0.8" opacity=".45"/>
-    <ellipse cx="36" cy="73" rx="7" ry="4" fill="#e0b87a" class="pl"/>
-    <ellipse cx="64" cy="73" rx="7" ry="4" fill="#e0b87a" class="pr"/>
-  </svg>`,
+/* Cat 1 — Round orange tabby, blinks + tail wag */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<style>
+.c1ey{animation:blink 3.5s ease-in-out infinite;}
+.c1tl{animation:tailWagR .9s ease-in-out infinite alternate;transform-origin:90px 94px;}
+.c1er{animation:earPerk 4s ease-in-out infinite;}
+</style>
+<!-- tail -->
+<path class="c1tl" d="M90,94 Q108,80 104,62 Q102,52 94,56" stroke="#e8903a" stroke-width="9" stroke-linecap="round" fill="none"/>
+<!-- body -->
+<ellipse cx="58" cy="86" rx="28" ry="24" fill="#f0a050"/>
+<!-- tummy -->
+<ellipse cx="58" cy="90" rx="16" ry="14" fill="#fbd8a8" opacity=".7"/>
+<!-- head -->
+<circle cx="58" cy="52" r="26" fill="#f0a050"/>
+<!-- ears -->
+<polygon points="36,32 28,10 48,28" fill="#f0a050"/>
+<polygon points="37,31 31,12 47,28" fill="#e07040" opacity=".6"/>
+<polygon points="80,32 88,10 68,28" fill="#f0a050"/>
+<polygon points="79,31 85,12 69,28" fill="#e07040" opacity=".6" class="c1er"/>
+<!-- stripes -->
+<path d="M42 46 Q58 42 74 46" stroke="#d07030" stroke-width="1.5" fill="none" opacity=".45"/>
+<path d="M40 53 Q58 49 76 53" stroke="#d07030" stroke-width="1.2" fill="none" opacity=".3"/>
+<!-- eyes -->
+<g class="c1ey">
+  <circle cx="49" cy="50" r="6" fill="#2c1810"/>
+  <circle cx="67" cy="50" r="6" fill="#2c1810"/>
+  <circle cx="51" cy="48" r="2" fill="white"/>
+  <circle cx="69" cy="48" r="2" fill="white"/>
+  <!-- eye color ring -->
+  <circle cx="49" cy="50" r="6" fill="none" stroke="#d4780a" stroke-width="1.5" opacity=".6"/>
+  <circle cx="67" cy="50" r="6" fill="none" stroke="#d4780a" stroke-width="1.5" opacity=".6"/>
+</g>
+<!-- nose -->
+<polygon points="58,58 55,61 61,61" fill="#e05060"/>
+<!-- mouth -->
+<path d="M55,61 Q53,65 50,65 M61,61 Q63,65 66,65" stroke="#c04050" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+<!-- whiskers -->
+<line x1="28" y1="59" x2="52" y2="61" stroke="#c07030" stroke-width=".9" opacity=".55"/>
+<line x1="28" y1="64" x2="52" y2="63" stroke="#c07030" stroke-width=".9" opacity=".55"/>
+<line x1="64" y1="61" x2="88" y2="59" stroke="#c07030" stroke-width=".9" opacity=".55"/>
+<line x1="64" y1="63" x2="88" y2="64" stroke="#c07030" stroke-width=".9" opacity=".55"/>
+<!-- paws -->
+<ellipse cx="42" cy="108" rx="10" ry="6" fill="#e8903a"/>
+<ellipse cx="74" cy="108" rx="10" ry="6" fill="#e8903a"/>
+<!-- toe beans -->
+<circle cx="38" cy="110" r="2.5" fill="#e05060" opacity=".55"/>
+<circle cx="42" cy="112" r="2.5" fill="#e05060" opacity=".55"/>
+<circle cx="46" cy="110" r="2.5" fill="#e05060" opacity=".55"/>
+</svg>`,
 
-  /* Shocked cat */
-  `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <style>
-      .shk{animation:shake .55s ease-in-out infinite;}
-      .sw{animation:sweat 1.6s ease-in-out infinite;}
-      @keyframes shake{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
-      @keyframes sweat{0%{transform:translateY(0);opacity:.9}100%{transform:translateY(14px);opacity:0}}
-    </style>
-    <g class="shk">
-      <ellipse cx="50" cy="71" rx="20" ry="17" fill="#c8a870"/>
-      <circle cx="50" cy="45" r="20" fill="#c8a870"/>
-      <polygon points="30,29 22,14 36,25" fill="#c8a870"/>
-      <polygon points="31,28 24,15 36,25" fill="#b87850" opacity=".55"/>
-      <polygon points="70,29 78,14 64,25" fill="#c8a870"/>
-      <polygon points="69,28 76,15 64,25" fill="#b87850" opacity=".55"/>
-      <circle cx="42" cy="43" r="6" fill="white"/>
-      <circle cx="58" cy="43" r="6" fill="white"/>
-      <circle cx="42" cy="44" r="3.5" fill="#1a0f0a"/>
-      <circle cx="58" cy="44" r="3.5" fill="#1a0f0a"/>
-      <circle cx="43.5" cy="42.5" r="1.2" fill="white"/>
-      <circle cx="59.5" cy="42.5" r="1.2" fill="white"/>
-      <ellipse cx="50" cy="53" rx="4" ry="5" fill="#2c1810"/>
-      <line x1="28" y1="51" x2="44" y2="51" stroke="#a07840" stroke-width="0.8" opacity=".45"/>
-      <line x1="56" y1="51" x2="72" y2="51" stroke="#a07840" stroke-width="0.8" opacity=".45"/>
-    </g>
-    <path class="sw" d="M73 31 Q75 27 73 23 Q71 27 73 31Z" fill="#5dade2" opacity=".7"/>
-    <line x1="79" y1="21" x2="86" y2="15" stroke="#c9973a" stroke-width="1.4" opacity=".35" stroke-linecap="round"/>
-    <line x1="81" y1="27" x2="89" y2="25" stroke="#c9973a" stroke-width="1.4" opacity=".35" stroke-linecap="round"/>
-  </svg>`,
+/* Cat 2 — Grey typing cat with screen glow */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<style>
+.c2pl{animation:pawTypeU .4s ease-in-out infinite alternate;}
+.c2pr{animation:pawTypeU .4s .2s ease-in-out infinite alternate;}
+.c2sc{animation:eyeShine 2s ease-in-out infinite;}
+</style>
+<!-- laptop -->
+<rect x="16" y="84" width="88" height="8" rx="3" fill="#3a2e22"/>
+<rect x="20" y="64" width="80" height="22" rx="3" fill="#2c1810"/>
+<rect x="23" y="67" width="74" height="16" rx="2" fill="#1a4060" class="c2sc"/>
+<!-- screen content -->
+<rect x="26" y="70" width="28" height="2.5" rx="1" fill="#4aa8d8" opacity=".75"/>
+<rect x="26" y="75" width="42" height="2" rx="1" fill="#4aa8d8" opacity=".5"/>
+<rect x="26" y="79" width="20" height="2" rx="1" fill="#68d890" opacity=".65"/>
+<rect x="60" y="70" width="8" height="2" rx="1" fill="#f0c050" opacity=".6"/>
+<!-- body -->
+<ellipse cx="60" cy="70" rx="22" ry="16" fill="#b8b0c0"/>
+<!-- head -->
+<circle cx="60" cy="46" r="22" fill="#b8b0c0"/>
+<!-- ears -->
+<polygon points="42,28 35,10 52,25" fill="#b8b0c0"/>
+<polygon points="43,27 37,12 51,25" fill="#c890a8" opacity=".55"/>
+<polygon points="78,28 85,10 68,25" fill="#b8b0c0"/>
+<polygon points="77,27 83,12 69,25" fill="#c890a8" opacity=".55"/>
+<!-- focused eyes (squint) -->
+<path d="M46 44 Q52 39 58 44" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M62 44 Q68 39 74 44" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<!-- nose -->
+<polygon points="60,52 57,55 63,55" fill="#c890a8"/>
+<!-- whiskers -->
+<line x1="34" y1="53" x2="55" y2="54" stroke="#9080a0" stroke-width=".9" opacity=".5"/>
+<line x1="65" y1="54" x2="86" y2="53" stroke="#9080a0" stroke-width=".9" opacity=".5"/>
+<!-- typing paws -->
+<ellipse cx="40" cy="87" rx="9" ry="5" fill="#a8a0b8" class="c2pl"/>
+<ellipse cx="80" cy="87" rx="9" ry="5" fill="#a8a0b8" class="c2pr"/>
+</svg>`,
 
-  /* Sleepy loaf cat with ZZZ */
-  `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <style>
-      .z1{animation:zFloat 2.2s ease-in-out infinite;}
-      .z2{animation:zFloat 2.2s .75s ease-in-out infinite;}
-      @keyframes zFloat{0%{transform:translate(0,0);opacity:0}25%{opacity:.9}100%{transform:translate(10px,-22px);opacity:0}}
-    </style>
-    <ellipse cx="50" cy="73" rx="25" ry="15" fill="#d4b07a"/>
-    <circle cx="50" cy="47" r="20" fill="#d4b07a"/>
-    <polygon points="34,31 28,15 41,27" fill="#d4b07a"/>
-    <polygon points="35,30 30,16 41,27" fill="#c08050" opacity=".5"/>
-    <polygon points="66,31 72,15 59,27" fill="#d4b07a"/>
-    <polygon points="65,30 70,16 59,27" fill="#c08050" opacity=".5"/>
-    <path d="M38 45 Q42 41 46 45" stroke="#2c1810" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <path d="M54 45 Q58 41 62 45" stroke="#2c1810" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <path d="M46 53 Q50 55 54 53" stroke="#c08050" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-    <polygon points="50,50 48,52 52,52" fill="#c08050"/>
-    <line x1="28" y1="50" x2="44" y2="52" stroke="#a07840" stroke-width="0.8" opacity=".38"/>
-    <line x1="56" y1="52" x2="72" y2="50" stroke="#a07840" stroke-width="0.8" opacity=".38"/>
-    <text class="z1" x="67" y="37" font-size="10" fill="#c9973a" opacity=".75" font-family="Georgia,serif">z</text>
-    <text class="z2" x="72" y="28" font-size="13" fill="#c9973a" opacity=".6" font-family="Georgia,serif">z</text>
-  </svg>`,
+/* Cat 3 — Black cat shocked with hearts */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<style>
+.c3sh{animation:shake .5s ease-in-out infinite;}
+.c3h1{animation:heartPop 2s ease-in-out infinite;}
+.c3h2{animation:heartPop 2s .7s ease-in-out infinite;}
+</style>
+<g class="c3sh">
+<!-- body -->
+<ellipse cx="60" cy="88" rx="24" ry="20" fill="#302830"/>
+<!-- tummy -->
+<ellipse cx="60" cy="92" rx="13" ry="11" fill="#504850" opacity=".8"/>
+<!-- head -->
+<circle cx="60" cy="54" r="24" fill="#302830"/>
+<!-- ears pointed -->
+<polygon points="38,34 30,12 48,30" fill="#302830"/>
+<polygon points="39,33 32,14 47,30" fill="#503050" opacity=".5"/>
+<polygon points="82,34 90,12 72,30" fill="#302830"/>
+<polygon points="81,33 88,14 73,30" fill="#503050" opacity=".5"/>
+<!-- big round eyes -->
+<circle cx="50" cy="52" r="8" fill="#f8f8f8"/>
+<circle cx="70" cy="52" r="8" fill="#f8f8f8"/>
+<circle cx="50" cy="53" r="5" fill="#1a0810"/>
+<circle cx="70" cy="53" r="5" fill="#1a0810"/>
+<circle cx="52" cy="51" r="2" fill="white"/>
+<circle cx="72" cy="51" r="2" fill="white"/>
+<!-- O mouth -->
+<ellipse cx="60" cy="64" rx="5" ry="6" fill="#1a0810"/>
+<!-- whiskers -->
+<line x1="28" y1="62" x2="53" y2="63" stroke="#604060" stroke-width="1" opacity=".5"/>
+<line x1="67" y1="63" x2="92" y2="62" stroke="#604060" stroke-width="1" opacity=".5"/>
+<!-- paws up -->
+<ellipse cx="36" cy="82" rx="9" ry="6" fill="#302830" transform="rotate(-20,36,82)"/>
+<ellipse cx="84" cy="82" rx="9" ry="6" fill="#302830" transform="rotate(20,84,82)"/>
+</g>
+<!-- floating hearts -->
+<text class="c3h1" x="85" y="32" font-size="16" fill="#ff6080">♥</text>
+<text class="c3h2" x="22" y="28" font-size="12" fill="#ff8090">♥</text>
+</svg>`,
 
-  /* Happy dancing cat with music notes */
-  `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <style>
-      .al{animation:waveL .65s ease-in-out infinite alternate;transform-origin:36px 63px;}
-      .ar{animation:waveR .65s ease-in-out infinite alternate;transform-origin:64px 63px;}
-      @keyframes waveL{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
-      @keyframes waveR{from{transform:rotate(22deg)}to{transform:rotate(-22deg)}}
-    </style>
-    <ellipse cx="50" cy="69" rx="19" ry="17" fill="#e8c060"/>
-    <ellipse cx="30" cy="66" rx="11" ry="5" fill="#e8c060" class="al" transform="rotate(-28,36,63)"/>
-    <ellipse cx="70" cy="66" rx="11" ry="5" fill="#e8c060" class="ar" transform="rotate(28,64,63)"/>
-    <circle cx="50" cy="43" r="20" fill="#e8c060"/>
-    <polygon points="34,27 28,11 43,23" fill="#e8c060"/>
-    <polygon points="35,26 30,12 43,23" fill="#d4a030" opacity=".5"/>
-    <polygon points="66,27 72,11 57,23" fill="#e8c060"/>
-    <polygon points="65,26 70,12 57,23" fill="#d4a030" opacity=".5"/>
-    <path d="M38 41 Q42 37 46 41" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <path d="M54 41 Q58 37 62 41" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <path d="M42 51 Q50 58 58 51" stroke="#2c1810" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <circle cx="40" cy="47" r="5" fill="#e88060" opacity=".22"/>
-    <circle cx="60" cy="47" r="5" fill="#e88060" opacity=".22"/>
-    <polygon points="50,48 48,50 52,50" fill="#d4a030"/>
-    <line x1="28" y1="47" x2="44" y2="49" stroke="#a07840" stroke-width="0.8" opacity=".4"/>
-    <line x1="56" y1="49" x2="72" y2="47" stroke="#a07840" stroke-width="0.8" opacity=".4"/>
-    <ellipse cx="42" cy="85" rx="7" ry="4" fill="#d4a030"/>
-    <ellipse cx="58" cy="85" rx="7" ry="4" fill="#d4a030"/>
-    <text x="70" y="30" font-size="13" fill="#c9973a" opacity=".55" font-family="Georgia,serif">♪</text>
-    <text x="14" y="38" font-size="10" fill="#c9973a" opacity=".45" font-family="Georgia,serif">♫</text>
-  </svg>`
+/* Cat 4 — Cream loaf sleeping with ZZZ */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<style>
+.c4z1{animation:zFloat 2.4s ease-in-out infinite;}
+.c4z2{animation:zFloat 2.4s .8s ease-in-out infinite;}
+.c4z3{animation:zFloat 2.4s 1.6s ease-in-out infinite;}
+</style>
+<!-- loaf body -->
+<ellipse cx="60" cy="90" rx="32" ry="18" fill="#f0d8a0"/>
+<!-- head -->
+<circle cx="60" cy="60" r="24" fill="#f0d8a0"/>
+<!-- ears low (sleeping) -->
+<polygon points="40,40 32,20 50,36" fill="#f0d8a0"/>
+<polygon points="41,39 34,22 49,36" fill="#d8a870" opacity=".5"/>
+<polygon points="80,40 88,20 70,36" fill="#f0d8a0"/>
+<polygon points="79,39 86,22 71,36" fill="#d8a870" opacity=".5"/>
+<!-- closed eyes (arcs) -->
+<path d="M46 58 Q52 53 58 58" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M62 58 Q68 53 74 58" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<!-- eyelashes -->
+<line x1="46" y1="58" x2="44" y2="61" stroke="#2c1810" stroke-width="1" stroke-linecap="round"/>
+<line x1="74" y1="58" x2="76" y2="61" stroke="#2c1810" stroke-width="1" stroke-linecap="round"/>
+<!-- nose -->
+<polygon points="60,65 57,68 63,68" fill="#d8a870"/>
+<!-- cheeks rosy -->
+<circle cx="46" cy="65" r="7" fill="#f09080" opacity=".2"/>
+<circle cx="74" cy="65" r="7" fill="#f09080" opacity=".2"/>
+<!-- whiskers -->
+<line x1="30" y1="64" x2="54" y2="66" stroke="#c8a060" stroke-width=".9" opacity=".4"/>
+<line x1="66" y1="66" x2="90" y2="64" stroke="#c8a060" stroke-width=".9" opacity=".4"/>
+<!-- tucked paws hint -->
+<ellipse cx="44" cy="102" rx="12" ry="6" fill="#e8c888"/>
+<ellipse cx="76" cy="102" rx="12" ry="6" fill="#e8c888"/>
+<!-- ZZZ -->
+<text class="c4z1" x="82" y="46" font-size="12" fill="#c8a060" opacity=".8" font-family="Georgia,serif" font-weight="bold">z</text>
+<text class="c4z2" x="88" y="35" font-size="16" fill="#c8a060" opacity=".65" font-family="Georgia,serif" font-weight="bold">z</text>
+<text class="c4z3" x="94" y="22" font-size="10" fill="#c8a060" opacity=".5" font-family="Georgia,serif" font-weight="bold">z</text>
+</svg>`,
+
+/* Cat 5 — Dancing calico with music notes + rosy cheeks */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<style>
+.c5al{animation:waveArm .6s ease-in-out infinite alternate;transform-origin:34px 76px;}
+.c5ar{animation:waveArm .6s ease-in-out infinite alternate reverse;transform-origin:86px 76px;}
+.c5tl{animation:tailWagL .7s ease-in-out infinite alternate;transform-origin:28px 98px;}
+</style>
+<!-- tail -->
+<path class="c5tl" d="M28,98 Q12,82 18,64 Q22,52 30,58" stroke="#e8b060" stroke-width="9" fill="none" stroke-linecap="round"/>
+<!-- body -->
+<ellipse cx="60" cy="82" rx="24" ry="22" fill="#f8f0e0"/>
+<!-- calico patches -->
+<ellipse cx="52" cy="78" rx="10" ry="8" fill="#f09840" opacity=".55"/>
+<ellipse cx="70" cy="88" rx="8" ry="7" fill="#303030" opacity=".22"/>
+<!-- head -->
+<circle cx="60" cy="50" r="24" fill="#f8f0e0"/>
+<!-- calico patch on head -->
+<ellipse cx="50" cy="44" rx="11" ry="9" fill="#f09840" opacity=".5"/>
+<ellipse cx="72" cy="48" rx="8" ry="7" fill="#303030" opacity=".2"/>
+<!-- ears -->
+<polygon points="38,30 30,8 50,26" fill="#f8f0e0"/>
+<polygon points="39,29 33,10 49,26" fill="#f09080" opacity=".55"/>
+<polygon points="82,30 90,8 70,26" fill="#f8f0e0"/>
+<polygon points="81,29 87,10 71,26" fill="#f09080" opacity=".55"/>
+<!-- happy arc eyes -->
+<path d="M46 48 Q52 43 58 48" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M62 48 Q68 43 74 48" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<!-- rosy cheeks -->
+<circle cx="44" cy="56" r="8" fill="#f09080" opacity=".28"/>
+<circle cx="76" cy="56" r="8" fill="#f09080" opacity=".28"/>
+<!-- nose -->
+<polygon points="60,56 57,59 63,59" fill="#f09080"/>
+<!-- big smile -->
+<path d="M50 62 Q60 70 70 62" stroke="#2c1810" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- whiskers -->
+<line x1="28" y1="56" x2="54" y2="58" stroke="#c8a060" stroke-width=".9" opacity=".5"/>
+<line x1="66" y1="58" x2="92" y2="56" stroke="#c8a060" stroke-width=".9" opacity=".5"/>
+<!-- waving arms -->
+<ellipse cx="28" cy="80" rx="12" ry="6" fill="#f0d8a0" class="c5al" transform="rotate(-30,34,76)"/>
+<ellipse cx="92" cy="80" rx="12" ry="6" fill="#f0d8a0" class="c5ar" transform="rotate(30,86,76)"/>
+<!-- feet -->
+<ellipse cx="48" cy="104" rx="9" ry="5" fill="#f0d8a0"/>
+<ellipse cx="72" cy="104" rx="9" ry="5" fill="#f0d8a0"/>
+<!-- music notes -->
+<text x="92" y="36" font-size="16" fill="#f0b040" opacity=".6" font-family="Georgia,serif">♪</text>
+<text x="12" y="44" font-size="13" fill="#f0b040" opacity=".5" font-family="Georgia,serif">♫</text>
+</svg>`
+
 ];
 
+/* ═══════════════════════════════
+   5 DOGS (SVG)
+═══════════════════════════════ */
+const DOGS = [
+
+/* Dog 1 — Golden retriever sitting, tongue out, tail wag */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<style>
+.d1tl{animation:tailWagR .5s ease-in-out infinite alternate;transform-origin:96px 86px;}
+.d1tn{animation:tailWagR .3s ease-in-out infinite alternate;transform-origin:60px 70px;}
+.d1ey{animation:blink 4s ease-in-out infinite;}
+</style>
+<!-- tail wagging fast -->
+<path class="d1tl" d="M96,86 Q112,72 108,54" stroke="#d4900a" stroke-width="10" stroke-linecap="round" fill="none"/>
+<!-- body -->
+<ellipse cx="60" cy="86" rx="30" ry="26" fill="#e8a820"/>
+<!-- tummy lighter -->
+<ellipse cx="60" cy="92" rx="18" ry="14" fill="#f8d870" opacity=".65"/>
+<!-- back legs -->
+<ellipse cx="36" cy="106" rx="12" ry="8" fill="#d89818"/>
+<ellipse cx="84" cy="106" rx="12" ry="8" fill="#d89818"/>
+<!-- head -->
+<circle cx="60" cy="52" r="26" fill="#e8a820"/>
+<!-- floppy ears -->
+<ellipse cx="34" cy="52" rx="10" ry="18" fill="#c88010" transform="rotate(-12,34,52)"/>
+<ellipse cx="86" cy="52" rx="10" ry="18" fill="#c88010" transform="rotate(12,86,52)"/>
+<!-- muzzle -->
+<ellipse cx="60" cy="62" rx="14" ry="10" fill="#f8d870"/>
+<!-- eyes -->
+<g class="d1ey">
+  <circle cx="50" cy="50" r="6" fill="#2c1810"/>
+  <circle cx="70" cy="50" r="6" fill="#2c1810"/>
+  <circle cx="52" cy="48" r="2.2" fill="white"/>
+  <circle cx="72" cy="48" r="2.2" fill="white"/>
+</g>
+<!-- nose big -->
+<ellipse cx="60" cy="60" rx="6" ry="4.5" fill="#2c1810"/>
+<circle cx="58" cy="59" r="1.5" fill="#504040" opacity=".5"/>
+<!-- tongue -->
+<ellipse cx="60" cy="70" rx="5" ry="7" fill="#f06080" class="d1tn"/>
+<line x1="60" y1="65" x2="60" y2="77" stroke="#d04060" stroke-width="1" opacity=".5"/>
+<!-- front paws -->
+<ellipse cx="44" cy="110" rx="10" ry="6" fill="#d89818"/>
+<ellipse cx="76" cy="110" rx="10" ry="6" fill="#d89818"/>
+</svg>`,
+
+/* Dog 2 — Shiba inu happy, squinty smile */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<style>
+.d2tl{animation:tailWagR .55s ease-in-out infinite alternate;transform-origin:90px 80px;}
+.d2er{animation:earPerk 3s ease-in-out infinite;}
+</style>
+<!-- tail curled up -->
+<path class="d2tl" d="M90,80 Q108,64 100,46 Q96,36 88,42" stroke="#e08030" stroke-width="8" stroke-linecap="round" fill="none"/>
+<!-- body -->
+<ellipse cx="58" cy="84" rx="28" ry="24" fill="#e88030"/>
+<!-- tummy white -->
+<ellipse cx="58" cy="88" rx="16" ry="16" fill="#f8ede0"/>
+<!-- head -->
+<circle cx="58" cy="52" r="26" fill="#e88030"/>
+<!-- pointed ears -->
+<polygon points="38,30 30,10 52,28" fill="#e88030" class="d2er"/>
+<polygon points="39,29 32,12 50,28" fill="#c86020" opacity=".5"/>
+<polygon points="78,30 86,10 64,28" fill="#e88030"/>
+<polygon points="77,29 84,12 66,28" fill="#c86020" opacity=".5"/>
+<!-- white muzzle zone -->
+<ellipse cx="58" cy="62" rx="15" ry="11" fill="#f8ede0"/>
+<!-- squinty happy eyes -->
+<path d="M44 50 Q50 45 56 50" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M60 50 Q66 45 72 50" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<!-- nose -->
+<ellipse cx="58" cy="60" rx="5.5" ry="4" fill="#2c1810"/>
+<!-- big smile -->
+<path d="M48 66 Q58 74 68 66" stroke="#2c1810" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- cheeks -->
+<circle cx="42" cy="62" r="7" fill="#f06040" opacity=".25"/>
+<circle cx="74" cy="62" r="7" fill="#f06040" opacity=".25"/>
+<!-- paws -->
+<ellipse cx="40" cy="108" rx="10" ry="6" fill="#d07020"/>
+<ellipse cx="76" cy="108" rx="10" ry="6" fill="#d07020"/>
+</svg>`,
+
+/* Dog 3 — Dalmatian puppy, spots, surprised big eyes */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<style>
+.d3sh{animation:shake .6s ease-in-out infinite;}
+.d3tl{animation:tailWagR .4s ease-in-out infinite alternate;transform-origin:94px 84px;}
+</style>
+<path class="d3tl" d="M94,84 Q110,70 106,54" stroke="#e0e0e0" stroke-width="9" stroke-linecap="round" fill="none"/>
+<g class="d3sh">
+<!-- body -->
+<ellipse cx="60" cy="86" rx="28" ry="22" fill="#f4f4f4"/>
+<!-- spots on body -->
+<circle cx="52" cy="80" r="6" fill="#303030" opacity=".7"/>
+<circle cx="68" cy="90" r="5" fill="#303030" opacity=".65"/>
+<circle cx="44" cy="92" r="4" fill="#303030" opacity=".55"/>
+<!-- head -->
+<circle cx="60" cy="54" r="24" fill="#f4f4f4"/>
+<!-- spots on head -->
+<circle cx="50" cy="44" r="5" fill="#303030" opacity=".6"/>
+<circle cx="70" cy="48" r="4" fill="#303030" opacity=".55"/>
+<circle cx="62" cy="38" r="3" fill="#303030" opacity=".5"/>
+<!-- floppy ears -->
+<ellipse cx="36" cy="54" rx="9" ry="16" fill="#e0e0e0" transform="rotate(-10,36,54)"/>
+<ellipse cx="84" cy="54" rx="9" ry="16" fill="#e0e0e0" transform="rotate(10,84,54)"/>
+<!-- ear spots -->
+<circle cx="36" cy="56" r="4" fill="#303030" opacity=".4"/>
+<circle cx="84" cy="58" r="4" fill="#303030" opacity=".4"/>
+<!-- BIG surprised eyes -->
+<circle cx="50" cy="52" r="9" fill="white"/>
+<circle cx="70" cy="52" r="9" fill="white"/>
+<circle cx="50" cy="53" r="5.5" fill="#1a0810"/>
+<circle cx="70" cy="53" r="5.5" fill="#1a0810"/>
+<circle cx="52" cy="51" r="2.5" fill="white"/>
+<circle cx="72" cy="51" r="2.5" fill="white"/>
+<!-- muzzle -->
+<ellipse cx="60" cy="64" rx="13" ry="9" fill="#f0f0f0"/>
+<!-- nose -->
+<ellipse cx="60" cy="62" rx="5" ry="3.5" fill="#2c1810"/>
+<!-- O mouth -->
+<ellipse cx="60" cy="70" rx="4" ry="5" fill="#2c1810"/>
+</g>
+</svg>`,
+
+/* Dog 4 — Tiny corgi butt/derp face, floppy big ears */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<style>
+.d4tl{animation:tailWagR .45s ease-in-out infinite alternate;transform-origin:94px 72px;}
+.d4ey{animation:blink 3s ease-in-out infinite;}
+.d4tn{animation:tailWagL .35s ease-in-out infinite alternate;transform-origin:60px 68px;}
+</style>
+<!-- stubby tail -->
+<ellipse cx="94" cy="72" rx="8" ry="5" fill="#e8a830" class="d4tl"/>
+<!-- body short wide -->
+<ellipse cx="60" cy="82" rx="34" ry="20" fill="#e8a830"/>
+<!-- tummy cream -->
+<ellipse cx="60" cy="85" rx="20" ry="13" fill="#f8e8c0"/>
+<!-- short legs -->
+<rect x="36" y="96" width="14" height="16" rx="5" fill="#d89020"/>
+<rect x="70" y="96" width="14" height="16" rx="5" fill="#d89020"/>
+<!-- head wide -->
+<ellipse cx="60" cy="52" rx="28" ry="24" fill="#e8a830"/>
+<!-- big floppy ears -->
+<ellipse cx="28" cy="54" rx="12" ry="20" fill="#e8a830"/>
+<ellipse cx="30" cy="56" rx="8" ry="14" fill="#c88020" opacity=".45"/>
+<ellipse cx="92" cy="54" rx="12" ry="20" fill="#e8a830"/>
+<ellipse cx="90" cy="56" rx="8" ry="14" fill="#c88020" opacity=".45"/>
+<!-- muzzle -->
+<ellipse cx="60" cy="60" rx="16" ry="12" fill="#f8e8c0"/>
+<!-- eyes derpy -->
+<g class="d4ey">
+  <circle cx="50" cy="50" r="6.5" fill="#2c1810"/>
+  <circle cx="70" cy="50" r="6.5" fill="#2c1810"/>
+  <circle cx="52" cy="48" r="2.5" fill="white"/>
+  <circle cx="72" cy="48" r="2.5" fill="white"/>
+</g>
+<!-- nose big -->
+<ellipse cx="60" cy="58" rx="6" ry="4.5" fill="#2c1810"/>
+<!-- tongue derpy out to side -->
+<ellipse cx="66" cy="68" rx="5" ry="6" fill="#f06080" class="d4tn" transform="rotate(15,66,68)"/>
+<!-- front paws -->
+<ellipse cx="42" cy="112" rx="9" ry="5" fill="#d89020"/>
+<ellipse cx="78" cy="112" rx="9" ry="5" fill="#d89020"/>
+</svg>`,
+
+/* Dog 5 — Poodle dancing with star eyes */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<style>
+.d5al{animation:waveArm .55s ease-in-out infinite alternate;transform-origin:30px 80px;}
+.d5ar{animation:waveArm .55s ease-in-out infinite alternate reverse;transform-origin:90px 80px;}
+.d5tl{animation:tailWagR .5s ease-in-out infinite alternate;transform-origin:96px 82px;}
+</style>
+<!-- pom tail -->
+<circle cx="104" cy="56" r="10" fill="#d8a0c0"/>
+<path class="d5tl" d="M96,82 Q106,68 104,56" stroke="#d8a0c0" stroke-width="7" stroke-linecap="round" fill="none"/>
+<!-- body pom shape -->
+<circle cx="60" cy="86" r="22" fill="#e8b8d8"/>
+<!-- head pom -->
+<circle cx="60" cy="52" r="22" fill="#e8b8d8"/>
+<!-- top knot pom -->
+<circle cx="60" cy="30" r="12" fill="#e8b8d8"/>
+<circle cx="60" cy="30" r="8" fill="#f8d0e8"/>
+<!-- ear poms -->
+<circle cx="34" cy="56" r="12" fill="#d8a0c0"/>
+<circle cx="86" cy="56" r="12" fill="#d8a0c0"/>
+<!-- muzzle -->
+<ellipse cx="60" cy="58" rx="12" ry="9" fill="#f8d0e8"/>
+<!-- star eyes ★ -->
+<text x="48" y="55" font-size="12" fill="#f0a020" text-anchor="middle" font-family="Georgia,serif">★</text>
+<text x="72" y="55" font-size="12" fill="#f0a020" text-anchor="middle" font-family="Georgia,serif">★</text>
+<!-- nose -->
+<circle cx="60" cy="58" r="3.5" fill="#c060a0"/>
+<!-- smile -->
+<path d="M52 64 Q60 70 68 64" stroke="#c060a0" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- rosy cheeks -->
+<circle cx="44" cy="62" r="7" fill="#f09080" opacity=".3"/>
+<circle cx="76" cy="62" r="7" fill="#f09080" opacity=".3"/>
+<!-- waving fluffy arms/legs -->
+<circle cx="28" cy="82" r="10" fill="#d8a0c0" class="d5al"/>
+<circle cx="92" cy="82" r="10" fill="#d8a0c0" class="d5ar"/>
+<!-- bottom pom legs -->
+<circle cx="46" cy="108" r="9" fill="#d8a0c0"/>
+<circle cx="74" cy="108" r="9" fill="#d8a0c0"/>
+<!-- sparkles -->
+<text x="96" y="30" font-size="14" fill="#f0c040" opacity=".7" font-family="Georgia,serif">✦</text>
+<text x="14" y="38" font-size="10" fill="#f0c040" opacity=".55" font-family="Georgia,serif">✦</text>
+</svg>`
+
+];
+
+/* ═══════════════════════════════
+   COMBINED PETS
+═══════════════════════════════ */
+const PETS = [...CATS, ...DOGS];
+
+/* ═══════════════════════════════
+   STATE
+═══════════════════════════════ */
 let pressInterval = null;
 let pressProgress = 0;
 let isGenerating = false;
 
-/* Reveal answer */
+/* ═══════════════════════════════
+   REVEAL ANSWER
+═══════════════════════════════ */
 function revealAnswer() {
   const idx  = Math.floor(Math.random() * ANSWERS.length);
   const page = Math.floor(Math.random() * 498) + 1;
@@ -738,8 +1175,9 @@ function revealAnswer() {
   document.getElementById('cardPage').textContent   = 'p. ' + page;
 
   const ask = document.getElementById('phase-ask');
-  ask.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
-  ask.style.opacity = '0'; ask.style.transform = 'translateY(-8px)';
+  ask.style.transition = 'opacity .28s ease, transform .28s ease';
+  ask.style.opacity = '0';
+  ask.style.transform = 'translateY(-8px)';
   setTimeout(() => {
     ask.style.display = 'none';
     const ans = document.getElementById('phase-answer');
@@ -748,52 +1186,62 @@ function revealAnswer() {
   }, 290);
 }
 
-/* Ask again */
+/* ═══════════════════════════════
+   ASK AGAIN
+═══════════════════════════════ */
 function askAgain() {
   const ans = document.getElementById('phase-answer');
-  ans.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
-  ans.style.opacity = '0'; ans.style.transform = 'translateY(8px)';
+  ans.style.transition = 'opacity .28s ease, transform .28s ease';
+  ans.style.opacity = '0';
+  ans.style.transform = 'translateY(8px)';
   setTimeout(() => {
     ans.classList.remove('visible');
-    ans.style.opacity = ''; ans.style.transform = '';
+    ans.style.opacity = '';
+    ans.style.transform = '';
     const ask = document.getElementById('phase-ask');
-    ask.style.display = ''; ask.style.opacity = '0'; ask.style.transform = 'translateY(8px)';
+    ask.style.display = '';
+    ask.style.opacity = '0';
+    ask.style.transform = 'translateY(8px)';
     void ask.offsetWidth;
-    ask.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-    ask.style.opacity = '1'; ask.style.transform = 'translateY(0)';
+    ask.style.transition = 'opacity .4s ease, transform .4s ease';
+    ask.style.opacity = '1';
+    ask.style.transform = 'translateY(0)';
   }, 295);
 }
 
-/* Go work → CSS animated cat */
+/* ═══════════════════════════════
+   GO WORK → PET
+═══════════════════════════════ */
 function goWork() {
   const cap = CAPTIONS[Math.floor(Math.random() * CAPTIONS.length)];
-  const svg = CAT_SVGS[Math.floor(Math.random() * CAT_SVGS.length)];
-  document.getElementById('catCaption').textContent = cap;
-  document.getElementById('catGifBox').innerHTML = `<div class="css-cat">${svg}</div>`;
-  document.getElementById('catOverlay').classList.add('visible');
+  const pet = PETS[Math.floor(Math.random() * PETS.length)];
+  document.getElementById('petCaption').textContent = cap;
+  document.getElementById('petStage').innerHTML = pet;
+  document.getElementById('petOverlay').classList.add('visible');
 }
-function closeCatOverlay() {
-  document.getElementById('catOverlay').classList.remove('visible');
+function closePetOverlay() {
+  document.getElementById('petOverlay').classList.remove('visible');
 }
 
-/* Long press to save */
+/* ═══════════════════════════════
+   LONG PRESS → SAVE IMAGE
+═══════════════════════════════ */
 function startPress(e) {
   if (isGenerating) return;
   e.preventDefault();
-  const ring = document.getElementById('pressRing');
+  const ring   = document.getElementById('pressRing');
   const circle = document.getElementById('pressCircle');
-  const card = document.getElementById('answerCard');
-  card.style.transition = 'transform 0.18s, box-shadow 0.18s';
-  card.style.transform = 'scale(0.987)';
+  const card   = document.getElementById('answerCard');
+  card.style.transition = 'transform .18s, box-shadow .18s';
+  card.style.transform  = 'scale(.987)';
   ring.style.opacity = '1';
   pressProgress = 0;
-  circle.style.strokeDashoffset = '172';
-
-  const step = 172 / (1600 / 28);
+  circle.style.strokeDashoffset = '176';
+  const step = 176 / (1600 / 28);
   pressInterval = setInterval(() => {
     pressProgress += step;
-    circle.style.strokeDashoffset = Math.max(0, 172 - pressProgress);
-    if (pressProgress >= 172) {
+    circle.style.strokeDashoffset = Math.max(0, 176 - pressProgress);
+    if (pressProgress >= 176) {
       clearInterval(pressInterval);
       endPress(true);
       generateAndShow();
@@ -803,13 +1251,13 @@ function startPress(e) {
 
 function endPress(completed = false) {
   clearInterval(pressInterval);
-  const ring = document.getElementById('pressRing');
+  const ring   = document.getElementById('pressRing');
   const circle = document.getElementById('pressCircle');
-  const card = document.getElementById('answerCard');
+  const card   = document.getElementById('answerCard');
   card.style.transform = '';
   if (!completed) {
     ring.style.opacity = '0';
-    circle.style.strokeDashoffset = '172';
+    circle.style.strokeDashoffset = '176';
     pressProgress = 0;
   }
 }
@@ -821,8 +1269,9 @@ async function generateAndShow() {
   const ring = document.getElementById('pressRing');
   ring.style.display = 'none';
   try {
-    const card = document.getElementById('answerCard');
-    const canvas = await html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true, logging: false });
+    const canvas = await html2canvas(document.getElementById('answerCard'), {
+      scale: 3, backgroundColor: null, useCORS: true, logging: false
+    });
     document.getElementById('savedImg').src = canvas.toDataURL('image/png');
     document.getElementById('saveOverlay').classList.add('visible');
   } catch(e) {
@@ -830,7 +1279,7 @@ async function generateAndShow() {
   }
   ring.style.display = '';
   ring.style.opacity = '0';
-  document.getElementById('pressCircle').style.strokeDashoffset = '172';
+  document.getElementById('pressCircle').style.strokeDashoffset = '176';
   pressProgress = 0;
   isGenerating = false;
 }
@@ -839,9 +1288,13 @@ function closeSaveOverlay() {
   document.getElementById('saveOverlay').classList.remove('visible');
 }
 
+/* ═══════════════════════════════
+   TOAST
+═══════════════════════════════ */
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
+  t.textContent = msg;
+  t.classList.add('show');
   clearTimeout(t._t);
   t._t = setTimeout(() => t.classList.remove('show'), 2800);
 }
