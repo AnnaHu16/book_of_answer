@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>答案之书 · The Book of Answers</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@300;400;600;900&family=IM+Fell+English:ital@0;1&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
+<!--
+  字体加载策略：
+  1. 主链路：fonts.loli.net（国内 Google Fonts 镜像，北京 CDN）
+  2. 备用：fonts.font.im（另一国内镜像）
+  3. 最终降级：CSS 里已设置系统衬线字体 fallback，页面可正常显示
+-->
+<link rel="preconnect" href="https://fonts.loli.net" crossorigin>
+<link href="https://fonts.loli.net/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@300;400;600;900&family=IM+Fell+English:ital@0;1&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet"
+  onerror="this.onerror=null;this.href='https://fonts.font.im/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@300;400;600;900&family=IM+Fell+English:ital@0;1&family=Noto+Sans+SC:wght@300;400&display=swap'">
 <style>
 /* ═══════════════════════════════════════════
    TOKENS
@@ -28,6 +36,11 @@
   --sh2:      rgba(28,21,16,0.16);
   --sh3:      rgba(28,21,16,0.28);
   --r:        6px;
+  /* 字体变量：Web字体 + 完整系统降级链 */
+  --f-display: 'Playfair Display', 'Noto Serif SC', 'Songti SC', 'SimSun', Georgia, serif;
+  --f-serif:   'Noto Serif SC', 'Songti SC', 'SimSun', Georgia, serif;
+  --f-italic:  'IM Fell English', 'Noto Serif SC', Georgia, serif;
+  --f-sans:    'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
 /* ═══════════════════════════════════════════
@@ -37,7 +50,7 @@
 html,body{min-height:100vh;overflow-x:hidden;}
 
 body {
-  font-family:'Noto Serif SC',serif;
+  font-family:var(--f-serif);
   color:var(--ink);
   /* Layered warm gradient background */
   background:
@@ -107,12 +120,12 @@ body::after{
   background:var(--gold2);
 }
 .header-badge-text{
-  font-family:'IM Fell English',serif;font-style:italic;
+  font-family:var(--f-italic);font-style:italic;
   font-size:10px;color:var(--gold2);letter-spacing:.3em;
 }
 
 .header-title{
-  font-family:'Playfair Display','Noto Serif SC',serif;
+  font-family:var(--f-display);
   font-size:clamp(44px,13vw,72px);
   font-weight:700;
   color:var(--ink2);
@@ -135,7 +148,7 @@ body::after{
 }
 .hm-line:last-child{background:linear-gradient(90deg,var(--gold),transparent);}
 .hm-text{
-  font-family:'IM Fell English',serif;font-style:italic;
+  font-family:var(--f-italic);font-style:italic;
   font-size:12.5px;color:var(--gold);letter-spacing:.16em;
 }
 
@@ -157,7 +170,7 @@ body::after{
   50%    {transform:translateY(-10px) rotate(2deg);}
 }
 .orn-caption{
-  font-family:'IM Fell English',serif;font-style:italic;
+  font-family:var(--f-italic);font-style:italic;
   font-size:10.5px;color:var(--sepia);letter-spacing:.22em;opacity:.6;
 }
 
@@ -203,7 +216,7 @@ body::after{
 }
 
 .ask-title{
-  font-family:'Playfair Display','Noto Serif SC',serif;
+  font-family:var(--f-display);
   font-size:17px;font-weight:700;
   color:var(--ink2);letter-spacing:.05em;
   margin-bottom:6px;
@@ -236,7 +249,7 @@ body::after{
   background:var(--ink2);border:none;
   border-radius:calc(var(--r) - 2px);
   color:var(--gold2);
-  font-family:'Noto Serif SC',serif;
+  font-family:var(--f-serif);
   font-size:15px;font-weight:400;
   letter-spacing:.42em;
   padding:16px 24px;
@@ -315,7 +328,7 @@ body::after{
 .cr-br{bottom:10px;right:10px;border-bottom:1.5px solid var(--gold);border-right:1.5px solid var(--gold);}
 
 .ac-label{
-  font-family:'IM Fell English',serif;font-style:italic;
+  font-family:var(--f-italic);font-style:italic;
   font-size:11px;color:var(--sepia);letter-spacing:.26em;
   opacity:.65;margin-bottom:20px;
   position:relative;z-index:1;
@@ -326,21 +339,23 @@ body::after{
   margin:0 auto 16px;opacity:.4;
 }
 .ac-answer{
-  font-family:'Playfair Display','Noto Serif SC',serif;
+  font-family:var(--f-display);
   font-size:clamp(20px,6.5vw,30px);font-weight:700;
   color:var(--ink2);line-height:1.7;
   letter-spacing:.06em;padding:4px 0 12px;
   position:relative;z-index:1;
+  display:inline-block;
+  text-align:left;
 }
 .ac-page{
-  font-family:'IM Fell English',serif;font-style:italic;
+  font-family:var(--f-italic);font-style:italic;
   font-size:12px;color:var(--sepia);letter-spacing:.2em;
   opacity:.6;position:relative;z-index:1;
 }
 .ac-brand{
   font-size:9.5px;color:rgba(90,66,48,.28);
   letter-spacing:.28em;margin-top:20px;
-  font-family:'IM Fell English',serif;
+  font-family:var(--f-italic);
   position:relative;z-index:1;
 }
 
@@ -381,7 +396,7 @@ body::after{
   border:1.5px solid var(--sepia2);
   border-radius:calc(var(--r) - 2px);
   color:var(--ink2);
-  font-family:'Noto Serif SC',serif;
+  font-family:var(--f-serif);
   font-size:14px;font-weight:400;letter-spacing:.24em;
   padding:14px 20px;cursor:pointer;
   transition:all .22s ease;
@@ -400,7 +415,7 @@ body::after{
   border:1px solid rgba(90,66,48,.16);
   border-radius:calc(var(--r) - 2px);
   color:rgba(90,66,48,.42);
-  font-family:'Noto Sans SC',sans-serif;
+  font-family:var(--f-sans);
   font-size:12px;font-weight:300;letter-spacing:.12em;
   padding:11px 20px;cursor:pointer;
   transition:all .22s ease;
@@ -449,7 +464,7 @@ body::after{
   margin-top:14px;
   background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
   border-radius:calc(var(--r) - 2px);color:rgba(255,255,255,.72);
-  font-family:'Noto Serif SC',serif;font-size:13px;
+  font-family:var(--f-serif);font-size:13px;
   letter-spacing:.18em;padding:10px 38px;cursor:pointer;
   transition:background .2s;
 }
@@ -501,7 +516,7 @@ body::after{
   animation:fadeUp .4s .18s ease both;
 }
 .pet-caption-txt{
-  font-family:'Noto Serif SC',serif;
+  font-family:var(--f-serif);
   font-size:14px;color:var(--ink2);
   line-height:1.85;letter-spacing:.04em;
 }
@@ -509,7 +524,7 @@ body::after{
 .pet-close{
   background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
   border-radius:calc(var(--r) - 2px);color:rgba(255,255,255,.72);
-  font-family:'Noto Serif SC',serif;font-size:13px;
+  font-family:var(--f-serif);font-size:13px;
   letter-spacing:.14em;padding:10px 32px;cursor:pointer;
   transition:background .2s;
   animation:fadeUp .4s .32s ease both;
@@ -523,7 +538,7 @@ body::after{
   position:fixed;bottom:36px;left:50%;
   transform:translateX(-50%) translateY(80px);
   background:var(--ink2);color:var(--gold2);
-  font-family:'Noto Serif SC',serif;
+  font-family:var(--f-serif);
   font-size:13px;letter-spacing:.1em;
   padding:11px 24px;border-radius:30px;
   box-shadow:0 8px 24px var(--sh3);
@@ -695,7 +710,7 @@ const ANSWERS = [
 ];
 
 /* ═══════════════════════════════
-   50 WORK CAPTIONS
+   43 WORK CAPTIONS
 ═══════════════════════════════ */
 const CAPTIONS = [
   "🐱 你在摸鱼，但代码也在盯着你…",
@@ -1543,9 +1558,21 @@ async function generateAndShow() {
 
       const totalH = lines.length * lineHeight;
       const startY = H / 2 - totalH / 2 + lineHeight * 0.5;
-      lines.forEach((l, i) => {
-        ctx.fillText(l, x, startY + i * lineHeight);
-      });
+
+      if (lines.length === 1) {
+        // 单行：居中
+        ctx.textAlign = 'center';
+        ctx.fillText(lines[0], x, startY);
+      } else {
+        // 多行：找最宽的行，让整个文字块水平居中，内部左对齐
+        ctx.textAlign = 'left';
+        const blockWidth = Math.max(...lines.map(l => ctx.measureText(l).width));
+        const blockLeft = x - blockWidth / 2;
+        lines.forEach((l, i) => {
+          ctx.fillText(l, blockLeft, startY + i * lineHeight);
+        });
+        ctx.textAlign = 'center';
+      }
       return lines.length;
     }
 
@@ -1642,5 +1669,6 @@ function showToast(msg) {
   t._t = setTimeout(() => t.classList.remove('show'), 2800);
 }
 </script>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="1732a6c8-eb1e-4359-ae6e-b867bd22ecd5"></script>
 </body>
 </html>
