@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>答案之书 · The Book of Answers</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;900&family=Cinzel:wght@400;600&family=Noto+Sans+SC:wght@300;400&display=swap');
+
+  :root {
+    --parchment: #f5ead6;
+    --ink: #2c1810;
+    --gold: #c9973a;
+    --gold-light: #e8c878;
+    --red: #8b1a1a;
+    --shadow: rgba(44,24,16,0.4);
+    --mystic: #1a0f0a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: var(--mystic);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Noto Serif SC', serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Starfield */
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(201,151,58,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(139,26,26,0.08) 0%, transparent 50%);
+  }
+  .star {
+    position: absolute;
+    background: var(--gold-light);
+    border-radius: 50%;
+    animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+    opacity: 0;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: var(--op, 0.6); transform: scale(1); }
+  }
+
+  /* Floating dust */
+  .dust {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    overflow: hidden;
+  }
+  .mote {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: float var(--fd, 8s) linear infinite var(--fdelay, 0s);
+    opacity: 0;
+  }
+  @keyframes float {
+    0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10% { opacity: 0.4; }
+    90% { opacity: 0.2; }
+    100% { transform: translateY(-20px) translateX(var(--fx, 30px)); opacity: 0; }
+  }
+
+  /* Main container */
+  .scene {
+    position: relative;
+    z-index: 10;
+    width: min(480px, 95vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* Title area */
+  .title-area {
+    text-align: center;
+    margin-bottom: 24px;
+    animation: fadeDown 1s ease forwards;
+  }
+  .title-cn {
+    font-size: clamp(28px,6vw,38px);
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    text-shadow: 0 0 30px rgba(201,151,58,0.5), 0 2px 4px rgba(0,0,0,0.8);
+  }
+  .title-en {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(11px,2.5vw,14px);
+    color: rgba(201,151,58,0.5);
+    letter-spacing: 0.25em;
+    margin-top: 4px;
+  }
+  .title-divider {
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 10px auto 0;
+  }
+
+  /* Book */
+  .book-wrapper {
+    perspective: 1200px;
+    width: 320px;
+    height: 420px;
+    margin: 0 auto;
+  }
+  .book {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease;
+  }
+  .book-cover, .book-back {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px 16px 16px 4px;
+    backface-visibility: hidden;
+  }
+  .book-cover {
+    background: linear-gradient(135deg, #3d1a0a 0%, #6b2d12 40%, #4a1f0d 70%, #2c1008 100%);
+    box-shadow:
+      -8px 8px 30px rgba(0,0,0,0.8),
+      inset 0 0 0 2px rgba(201,151,58,0.2),
+      inset 4px 0 0 rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 32px 24px;
+    cursor: default;
+    overflow: hidden;
+  }
+  .book-cover::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 1px solid rgba(201,151,58,0.25);
+    border-radius: 2px 12px 12px 2px;
+    pointer-events: none;
+  }
+  .book-cover::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 28px;
+    background: linear-gradient(90deg, rgba(0,0,0,0.5), rgba(0,0,0,0.1));
+    border-right: 2px solid rgba(201,151,58,0.15);
+  }
+
+  .cover-eye {
+    width: 80px;
+    height: 80px;
+    position: relative;
+  }
+  .cover-eye svg { width: 100%; height: 100%; }
+
+  .cover-title-cn {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 0.4em;
+    text-shadow: 0 0 20px rgba(201,151,58,0.6);
+  }
+  .cover-title-en {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    color: rgba(201,151,58,0.45);
+    letter-spacing: 0.2em;
+    text-align: center;
+  }
+  .cover-ornament {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  /* Page reveal */
+  .page {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px 16px 16px 4px;
+    background: linear-gradient(135deg, #fdf6e3 0%, var(--parchment) 50%, #f0e0c0 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 32px;
+    backface-visibility: hidden;
+    transform: rotateY(-180deg);
+    box-shadow:
+      -4px 4px 20px rgba(0,0,0,0.6),
+      inset -2px 0 8px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .page::before {
+    content: '';
+    position: absolute;
+    inset: 16px;
+    border: 1px solid rgba(139,26,26,0.15);
+    pointer-events: none;
+  }
+  .page-texture {
+    position: absolute;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .page-number {
+    position: absolute;
+    bottom: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    color: rgba(139,26,26,0.4);
+    letter-spacing: 0.15em;
+  }
+  .answer-ornament-top, .answer-ornament-bottom {
+    color: var(--red);
+    font-size: 18px;
+    opacity: 0.5;
+    line-height: 1;
+  }
+  .answer-text {
+    font-size: clamp(18px, 5vw, 24px);
+    font-weight: 600;
+    color: var(--ink);
+    text-align: center;
+    line-height: 1.8;
+    letter-spacing: 0.08em;
+    padding: 16px 0;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.8);
+    position: relative;
+    z-index: 1;
+  }
+  .answer-sub {
+    font-size: 11px;
+    color: rgba(44,24,16,0.35);
+    letter-spacing: 0.2em;
+    font-family: 'Cinzel', serif;
+    margin-top: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Flip animation */
+  .book.flipping {
+    animation: bookFlip 1.2s cubic-bezier(0.4,0,0.2,1) forwards;
+  }
+  @keyframes bookFlip {
+    0% { transform: rotateY(0deg); }
+    50% { transform: rotateY(-90deg) scale(1.05); }
+    100% { transform: rotateY(-180deg); }
+  }
+  .book.showing-page .book-cover { opacity: 0; pointer-events: none; }
+  .book.showing-page .page { transform: rotateY(0); }
+
+  /* Flip back */
+  .book.flipping-back {
+    animation: bookFlipBack 0.8s cubic-bezier(0.4,0,0.2,1) forwards;
+  }
+  @keyframes bookFlipBack {
+    0% { transform: rotateY(-180deg); }
+    100% { transform: rotateY(0deg); }
+  }
+
+  /* Prompt card */
+  .prompt-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,151,58,0.2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    text-align: center;
+    margin-top: 20px;
+    backdrop-filter: blur(4px);
+    animation: fadeUp 0.6s ease forwards;
+    width: 100%;
+  }
+  .prompt-label {
+    font-size: 11px;
+    color: rgba(201,151,58,0.5);
+    letter-spacing: 0.25em;
+    font-family: 'Cinzel', serif;
+    margin-bottom: 8px;
+  }
+  .prompt-text {
+    font-size: clamp(13px, 3.5vw, 15px);
+    color: rgba(245,234,214,0.8);
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  /* Breathing dot */
+  .breath-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin: 16px auto 0;
+    animation: breathe 2.5s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--gold);
+  }
+  @keyframes breathe {
+    0%,100% { transform: scale(0.7); opacity: 0.4; }
+    50% { transform: scale(1.3); opacity: 1; }
+  }
+
+  /* Reveal button */
+  .reveal-btn {
+    margin-top: 24px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    letter-spacing: 0.3em;
+    padding: 14px 40px;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+  .reveal-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-101%);
+    transition: transform 0.3s ease;
+    z-index: 0;
+  }
+  .reveal-btn:hover::before { transform: translateX(0); }
+  .reveal-btn:hover { color: var(--mystic); }
+  .reveal-btn span { position: relative; z-index: 1; }
+
+  /* Action buttons */
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
+    animation: fadeUp 0.5s ease forwards;
+  }
+  .btn-again {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    padding: 13px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-again::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(201,151,58,0.1);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .btn-again:hover::before { transform: scaleX(1); }
+
+  .btn-work {
+    background: transparent;
+    border: 1px solid rgba(245,234,214,0.15);
+    color: rgba(245,234,214,0.4);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    padding: 11px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .btn-work:hover {
+    border-color: rgba(245,234,214,0.3);
+    color: rgba(245,234,214,0.7);
+    background: rgba(255,255,255,0.03);
+  }
+  .btn-work:active { transform: scale(0.97); }
+
+  /* States */
+  .phase { display: none; }
+  .phase.active { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+  /* Ripple overlay */
+  .ripple-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .ripple-overlay.active {
+    animation: rippleOut 1.4s ease forwards;
+  }
+  @keyframes rippleOut {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 0; }
+  }
+  .ripple-circle {
+    position: absolute;
+    width: 20px; height: 20px;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    animation: expand 1.4s ease forwards;
+  }
+  @keyframes expand {
+    to { width: 200vmax; height: 200vmax; opacity: 0; border-color: transparent; }
+  }
+
+  /* Toast work */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(44,24,16,0.95);
+    border: 1px solid rgba(201,151,58,0.3);
+    color: rgba(245,234,214,0.8);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 13px;
+    padding: 12px 24px;
+    border-radius: 40px;
+    letter-spacing: 0.1em;
+    backdrop-filter: blur(10px);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease;
+    opacity: 0;
+    white-space: nowrap;
+    z-index: 200;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Particle burst */
+  .particle {
+    position: fixed;
+    pointer-events: none;
+    border-radius: 50%;
+    z-index: 150;
+    animation: particleFly var(--pt, 0.8s) ease-out forwards;
+  }
+  @keyframes particleFly {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--px,40px), var(--py,-80px)) scale(0); opacity: 0; }
+  }
+
+  /* Eye pulse when idle */
+  @keyframes eyePulse {
+    0%,100% { filter: drop-shadow(0 0 4px rgba(201,151,58,0.5)); }
+    50% { filter: drop-shadow(0 0 16px rgba(201,151,58,0.9)); }
+  }
+  .cover-eye { animation: eyePulse 3s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="dust" id="dust"></div>
+
+<div class="ripple-overlay" id="ripple">
+  <div class="ripple-circle"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="scene">
+  <div class="title-area">
+    <div class="title-cn">答案之书</div>
+    <div class="title-en">THE BOOK OF ANSWERS</div>
+    <div class="title-divider"></div>
+  </div>
+
+  <!-- Phase 1: Ask -->
+  <div class="phase active" id="phase-ask">
+    <div class="book-wrapper">
+      <div class="book" id="book">
+        <div class="book-cover">
+          <div class="cover-eye">
+            <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="40" cy="40" rx="35" ry="22" stroke="#c9973a" stroke-width="1.5" fill="none" opacity="0.4"/>
+              <ellipse cx="40" cy="40" rx="26" ry="14" stroke="#c9973a" stroke-width="1" fill="none" opacity="0.6"/>
+              <circle cx="40" cy="40" r="10" fill="#c9973a" opacity="0.9"/>
+              <circle cx="40" cy="40" r="5" fill="#2c1810"/>
+              <circle cx="43" cy="37" r="2" fill="rgba(255,255,255,0.6)"/>
+              <line x1="5" y1="40" x2="20" y2="40" stroke="#c9973a" stroke-width="0.8" opacity="0.4"/>
+              <line x1="60" y1="40" x2="75" y2="40" stroke="#c9973a" stroke-width="0.8" opacity="0.4"/>
+              <line x1="40" y1="5" x2="40" y2="18" stroke="#c9973a" stroke-width="0.8" opacity="0.3"/>
+              <line x1="40" y1="62" x2="40" y2="75" stroke="#c9973a" stroke-width="0.8" opacity="0.3"/>
+            </svg>
+          </div>
+          <div class="cover-ornament"></div>
+          <div class="cover-title-cn">答案之书</div>
+          <div class="cover-title-en">THE BOOK OF ANSWERS</div>
+          <div class="cover-ornament"></div>
+        </div>
+        <div class="page" id="page-content">
+          <div class="page-texture"></div>
+          <div class="answer-ornament-top">✦</div>
+          <div class="answer-text" id="answer-display">答案在此</div>
+          <div class="answer-sub" id="answer-sub">PAGE <span id="page-num">—</span></div>
+          <div class="answer-ornament-bottom">✦</div>
+          <div class="page-number" id="page-footer">— ✦ —</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-label">ORACLE</div>
+      <div class="prompt-text">闭上眼睛，在心中默想<br>你最想得到解答的问题</div>
+      <div class="breath-dot"></div>
+    </div>
+
+    <button class="reveal-btn" id="reveal-btn" onclick="handleReveal()">
+      <span>✦ 翻开答案 ✦</span>
+    </button>
+  </div>
+
+  <!-- Phase 2: Answer -->
+  <div class="phase" id="phase-answer">
+    <div style="height:20px"></div>
+    <div class="actions" id="action-btns" style="display:none">
+      <button class="btn-again" onclick="handleAgain()">↺ &nbsp;再问一次</button>
+      <button class="btn-work" onclick="handleWork()">好了好了，继续搬砖吧 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ANSWERS = [
+  "是的，就是现在",
+  "顺其自然",
+  "不必再等待",
+  "答案藏在你心里",
+  "相信你的直觉",
+  "这一次，放手去做",
+  "时机已经成熟",
+  "比你想象的更快",
+  "别想太多，行动吧",
+  "一定会的",
+  "现在不是时候",
+  "不要勉强",
+  "先休息一下",
+  "换个角度看",
+  "你已经知道答案了",
+  "让时间来回答",
+  "是的",
+  "不是",
+  "也许吧",
+  "无需担心",
+  "专注于当下",
+  "这件事会过去的",
+  "有人在支持你",
+  "你比你以为的更强",
+  "放弃不需要的执念",
+  "今天不是最后一天",
+  "事情正在好转",
+  "说出来会更好",
+  "保持耐心",
+  "你走在正确的路上",
+  "做你感到快乐的事",
+  "这是一次好机会",
+  "不用解释，去做就好",
+  "先从小处开始",
+  "深呼吸，再决定",
+  "命运已经安排好了",
+  "问题本身就是答案",
+  "没有所谓完美时机",
+  "你值得拥有更好的",
+  "别害怕犯错",
+  "试试就知道了",
+  "停止等待别人的允许",
+  "你的感受是正确的",
+  "去做那件你一直拖延的事",
+  "放松，一切都好",
+  "这不是终点",
+  "惊喜即将到来",
+  "信任这个过程",
+  "有时候不知道也没关系",
+  "好好睡一觉再说"
+];
+
+const WORK_TOASTS = [
+  "🧱 砖头不会自己搬的……",
+  "☕ 去倒杯咖啡，然后回来",
+  "💼 你的绩效正在凝视着你",
+  "🖥️ 摸鱼被发现了（开玩笑）",
+  "⏰ 时间不等人，老板也是",
+  "🌟 命运已定，工作继续",
+  "📊 PPT还没改好，朋友",
+  "🍜 早点下班就努力工作吧"
+];
+
+let currentPage = null;
+
+// Generate stars
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 60; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  s.style.cssText = `
+    left:${Math.random()*100}%;top:${Math.random()*100}%;
+    width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;
+    --d:${2+Math.random()*4}s;--delay:${Math.random()*5}s;
+    --op:${0.3+Math.random()*0.5};
+  `;
+  starsEl.appendChild(s);
+}
+
+// Generate dust
+const dustEl = document.getElementById('dust');
+for (let i = 0; i < 20; i++) {
+  const m = document.createElement('div');
+  m.className = 'mote';
+  m.style.cssText = `
+    left:${Math.random()*100}%;
+    --fd:${6+Math.random()*8}s;--fdelay:${Math.random()*8}s;
+    --fx:${(Math.random()-0.5)*60}px;
+  `;
+  dustEl.appendChild(m);
+}
+
+function getRandomAnswer() {
+  const idx = Math.floor(Math.random() * ANSWERS.length);
+  const page = Math.floor(Math.random() * 498) + 1;
+  return { text: ANSWERS[idx], page };
+}
+
+function fireParticles(x, y) {
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 3 + Math.random() * 5;
+    const angle = (Math.random() * 360) * Math.PI / 180;
+    const dist = 40 + Math.random() * 80;
+    p.style.cssText = `
+      left:${x}px;top:${y}px;
+      width:${size}px;height:${size}px;
+      background:${Math.random()>0.5?'#c9973a':'#e8c878'};
+      --px:${Math.cos(angle)*dist}px;
+      --py:${Math.sin(angle)*dist - 40}px;
+      --pt:${0.5+Math.random()*0.6}s;
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1200);
+  }
+}
+
+function handleReveal() {
+  const btn = document.getElementById('reveal-btn');
+  const rect = btn.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+
+  // Ripple
+  const ripple = document.getElementById('ripple');
+  ripple.classList.remove('active');
+  void ripple.offsetWidth;
+  ripple.classList.add('active');
+
+  fireParticles(cx, cy);
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+
+  const result = getRandomAnswer();
+  currentPage = result.page;
+
+  document.getElementById('answer-display').textContent = result.text;
+  document.getElementById('page-num').textContent = result.page;
+  document.getElementById('page-footer').textContent = `— ${result.page} —`;
+
+  // Flip book
+  const book = document.getElementById('book');
+  book.classList.add('flipping');
+
+  setTimeout(() => {
+    book.classList.remove('flipping');
+    book.classList.add('showing-page');
+    book.style.transform = 'rotateY(-180deg)';
+
+    // Move book to answer phase
+    setTimeout(() => {
+      const phaseAnswer = document.getElementById('phase-answer');
+      const phaseAsk = document.getElementById('phase-ask');
+      const bookWrapper = document.querySelector('.book-wrapper');
+      const promptCard = document.querySelector('.prompt-card');
+
+      // Animate out prompt card
+      promptCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      promptCard.style.opacity = '0';
+      promptCard.style.transform = 'translateY(10px)';
+      btn.style.transition = 'opacity 0.3s ease';
+      btn.style.opacity = '0';
+
+      setTimeout(() => {
+        phaseAsk.classList.remove('active');
+        phaseAnswer.classList.add('active');
+
+        // Move book
+        phaseAnswer.insertBefore(bookWrapper, phaseAnswer.firstChild);
+
+        const actionBtns = document.getElementById('action-btns');
+        actionBtns.style.display = 'flex';
+        actionBtns.style.flexDirection = 'column';
+        actionBtns.style.gap = '10px';
+        actionBtns.style.width = '100%';
+        actionBtns.style.animation = 'fadeUp 0.5s ease forwards';
+      }, 320);
+    }, 300);
+  }, 1200);
+}
+
+function handleAgain() {
+  const book = document.getElementById('book');
+  const phaseAsk = document.getElementById('phase-ask');
+  const phaseAnswer = document.getElementById('phase-answer');
+  const bookWrapper = document.querySelector('.book-wrapper');
+  const actionBtns = document.getElementById('action-btns');
+
+  // Flip back
+  book.style.transition = 'none';
+  book.classList.add('flipping-back');
+
+  actionBtns.style.opacity = '0';
+
+  setTimeout(() => {
+    book.classList.remove('flipping-back', 'showing-page');
+    book.style.transform = '';
+    book.style.transition = '';
+
+    phaseAnswer.classList.remove('active');
+    phaseAsk.classList.add('active');
+
+    // Restore book
+    const bookSlot = phaseAsk.querySelector('.prompt-card');
+    phaseAsk.insertBefore(bookWrapper, phaseAsk.firstChild);
+
+    const promptCard = phaseAsk.querySelector('.prompt-card');
+    promptCard.style.opacity = '1';
+    promptCard.style.transform = '';
+
+    const btn = document.getElementById('reveal-btn');
+    btn.style.opacity = '1';
+    btn.disabled = false;
+    actionBtns.style.opacity = '';
+    actionBtns.style.display = 'none';
+  }, 800);
+}
+
+function handleWork() {
+  const msg = WORK_TOASTS[Math.floor(Math.random() * WORK_TOASTS.length)];
+  showToast(msg);
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
