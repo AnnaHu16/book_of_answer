@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>答案之书 · The Book of Answers</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@300;400;600;900&family=IM+Fell+English:ital@0;1&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════
@@ -1271,40 +1271,151 @@ async function generateAndShow() {
   ring.style.display = 'none';
 
   try {
-    const card = document.getElementById('answerCard');
+    const answerText = document.getElementById('cardAnswer').textContent;
+    const pageText   = document.getElementById('cardPage').textContent;
 
-    const canvas = await html2canvas(card, {
-      scale: 3,
-      backgroundColor: '#f4ead6',
-      useCORS: false,      // must be false when allowTaint is true
-      allowTaint: true,    // let cross-origin content paint (fonts, etc.)
-      logging: false,
-      foreignObjectRendering: false,
-      onclone: (clonedDoc) => {
-        const clonedCard = clonedDoc.getElementById('answerCard');
-        if (!clonedCard) return;
-        // Flatten gradient so it always renders
-        clonedCard.style.cssText +=
-          ';background:linear-gradient(160deg,#fefaf2 0%,#f8eed8 50%,#f0e2c0 100%) !important' +
-          ';box-shadow:none !important';
-        // Replace Google-font text with a web-safe serif so canvas doesn't block
-        clonedCard.querySelectorAll('*').forEach(el => {
-          el.style.fontFamily = 'Georgia,"Times New Roman",serif';
-        });
-        // Hide press ring
-        const pr = clonedCard.querySelector('.press-ring');
-        if (pr) pr.style.display = 'none';
+    // Card dimensions (px at 3× scale → looks crisp on retina)
+    const W = 360 * 3, H = 440 * 3, S = 3;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+
+    // ── Background gradient ──
+    const grd = ctx.createLinearGradient(0, 0, W * 0.6, H);
+    grd.addColorStop(0,   '#fefaf2');
+    grd.addColorStop(0.5, '#f8eed8');
+    grd.addColorStop(1,   '#f0e2c0');
+    ctx.fillStyle = grd;
+    roundRect(ctx, 0, 0, W, H, 16 * S);
+    ctx.fill();
+
+    // ── Ambient glow top-right ──
+    const glw = ctx.createRadialGradient(W * 0.85, H * 0.05, 0, W * 0.85, H * 0.05, W * 0.45);
+    glw.addColorStop(0,   'rgba(220,185,120,0.18)');
+    glw.addColorStop(1,   'rgba(220,185,120,0)');
+    ctx.fillStyle = glw;
+    roundRect(ctx, 0, 0, W, H, 16 * S);
+    ctx.fill();
+
+    // ── Top border bar ──
+    const bar = ctx.createLinearGradient(0, 0, W, 0);
+    bar.addColorStop(0,    'rgba(106,80,48,0)');
+    bar.addColorStop(0.22, '#6a5030');
+    bar.addColorStop(0.5,  '#d4aa60');
+    bar.addColorStop(0.78, '#6a5030');
+    bar.addColorStop(1,    'rgba(106,80,48,0)');
+    ctx.fillStyle = bar;
+    roundRect(ctx, 0, 0, W, 7 * S, 0);
+    ctx.fill();
+
+    // ── Corner marks ──
+    const cmSize = 18 * S, cmOff = 10 * S;
+    ctx.strokeStyle = 'rgba(176,136,64,0.38)';
+    ctx.lineWidth = 1.5 * S;
+    // TL
+    ctx.beginPath(); ctx.moveTo(cmOff + cmSize, cmOff); ctx.lineTo(cmOff, cmOff); ctx.lineTo(cmOff, cmOff + cmSize); ctx.stroke();
+    // TR
+    ctx.beginPath(); ctx.moveTo(W - cmOff - cmSize, cmOff); ctx.lineTo(W - cmOff, cmOff); ctx.lineTo(W - cmOff, cmOff + cmSize); ctx.stroke();
+    // BL
+    ctx.beginPath(); ctx.moveTo(cmOff + cmSize, H - cmOff); ctx.lineTo(cmOff, H - cmOff); ctx.lineTo(cmOff, H - cmOff - cmSize); ctx.stroke();
+    // BR
+    ctx.beginPath(); ctx.moveTo(W - cmOff - cmSize, H - cmOff); ctx.lineTo(W - cmOff, H - cmOff); ctx.lineTo(W - cmOff, H - cmOff - cmSize); ctx.stroke();
+
+    // ── Inner border ──
+    ctx.strokeStyle = 'rgba(139,104,64,0.13)';
+    ctx.lineWidth = 1 * S;
+    roundRect(ctx, 12 * S, 12 * S, W - 24 * S, H - 24 * S, 10 * S);
+    ctx.stroke();
+
+    // helper: centered text with auto line-wrap
+    function wrapText(text, x, maxWidth, lineHeight) {
+      // split CJK + latin smartly
+      const words = [];
+      let cur = '';
+      for (const ch of text) {
+        if (/[\u4e00-\u9fff\u3000-\u303f！。，、？…·]/.test(ch)) {
+          if (cur) { words.push(cur); cur = ''; }
+          words.push(ch);
+        } else if (ch === ' ') {
+          if (cur) { words.push(cur); cur = ''; }
+        } else {
+          cur += ch;
+        }
       }
-    });
+      if (cur) words.push(cur);
 
-    const dataURL = canvas.toDataURL('image/png');
+      const lines = [];
+      let line = '';
+      for (const w of words) {
+        const test = line + w;
+        if (ctx.measureText(test).width > maxWidth && line !== '') {
+          lines.push(line); line = w;
+        } else { line = test; }
+      }
+      if (line) lines.push(line);
+
+      const totalH = lines.length * lineHeight;
+      const startY = H / 2 - totalH / 2 + lineHeight * 0.5;
+      lines.forEach((l, i) => {
+        ctx.fillText(l, x, startY + i * lineHeight);
+      });
+      return lines.length;
+    }
+
+    // ── EN label ──
+    ctx.fillStyle = 'rgba(138,104,64,0.6)';
+    ctx.font = `italic ${11 * S}px Georgia,serif`;
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = `${3.5 * S}px`;
+    ctx.fillText('The Book of Answers', W / 2, 68 * S);
+    ctx.letterSpacing = '0px';
+
+    // ── Rule above answer ──
+    const ruleGrd = (y) => {
+      const g = ctx.createLinearGradient(W * 0.2, y, W * 0.8, y);
+      g.addColorStop(0, 'rgba(138,104,64,0)');
+      g.addColorStop(0.5, 'rgba(138,104,64,0.4)');
+      g.addColorStop(1, 'rgba(138,104,64,0)');
+      return g;
+    };
+    ctx.fillStyle = ruleGrd(86 * S);
+    ctx.fillRect(W * 0.2, 86 * S, W * 0.6, 1 * S);
+
+    // ── Answer text ──
+    const fontSize = answerText.length <= 6 ? 38 : answerText.length <= 10 ? 32 : 26;
+    ctx.font = `700 ${fontSize * S}px Georgia,"Times New Roman",serif`;
+    ctx.fillStyle = '#362818';
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = `${2 * S}px`;
+    wrapText(answerText, W / 2, W * 0.7, fontSize * S * 1.75);
+    ctx.letterSpacing = '0px';
+
+    // ── Rule below answer ──
+    ctx.fillStyle = ruleGrd(H - 108 * S);
+    ctx.fillRect(W * 0.2, H - 108 * S, W * 0.6, 1 * S);
+
+    // ── Page number ──
+    ctx.fillStyle = 'rgba(138,104,64,0.6)';
+    ctx.font = `italic ${11 * S}px Georgia,serif`;
+    ctx.letterSpacing = `${2.5 * S}px`;
+    ctx.fillText(pageText, W / 2, H - 82 * S);
+    ctx.letterSpacing = '0px';
+
+    // ── Brand ──
+    ctx.fillStyle = 'rgba(90,66,48,0.28)';
+    ctx.font = `${9 * S}px Georgia,serif`;
+    ctx.letterSpacing = `${2 * S}px`;
+    ctx.fillText('答案之书 · 宇宙来回答', W / 2, H - 40 * S);
+    ctx.letterSpacing = '0px';
+
+    // ── Output ──
+    const dataURL = cv.toDataURL('image/png');
     document.getElementById('savedImg').src = dataURL;
     document.getElementById('saveOverlay').classList.add('visible');
 
   } catch(err) {
-    console.error('html2canvas error:', err);
-    // Absolute fallback: native share or screenshot prompt
-    showToast('生成失败，请长按屏幕截图保存 📷');
+    console.error('Canvas draw error:', err);
+    showToast('生成失败，请截图保存 📷');
   }
 
   ring.style.display = '';
@@ -1312,6 +1423,21 @@ async function generateAndShow() {
   document.getElementById('pressCircle').style.strokeDashoffset = '176';
   pressProgress = 0;
   isGenerating = false;
+}
+
+// Polyfill roundRect for older Safari/Android
+function roundRect(ctx, x, y, w, h, r) {
+  if (typeof ctx.roundRect === 'function') {
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+  }
 }
 
 function closeSaveOverlay() {
