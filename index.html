@@ -101,68 +101,64 @@ body::after {
   animation: fadeUp 0.8s 0.2s ease both;
 }
 
-/* Book cover */
+/* Book cover — minimal black + gold */
 .book-cover {
-  width: 224px;
-  height: 288px;
-  background: linear-gradient(150deg, #2e1f10 0%, #1c1108 60%, #0f0905 100%);
-  border-radius: 3px 14px 14px 3px;
+  width: 220px;
+  background: #0c0905;
+  border-radius: 2px;
   box-shadow:
-    -7px 7px 28px rgba(0,0,0,0.48),
-    -2px 2px 6px rgba(0,0,0,0.28),
-    inset 0 0 0 1px rgba(160,120,64,0.10),
-    inset 3px 0 0 rgba(0,0,0,0.3);
+    0 16px 48px rgba(0,0,0,0.42),
+    0 4px 12px rgba(0,0,0,0.28),
+    inset 0 0 0 1px rgba(160,120,64,0.08);
   display:flex; flex-direction:column;
   align-items:center; justify-content:center;
-  gap:10px; padding:26px 22px;
+  gap:0; padding:44px 28px 40px;
   position:relative; overflow:hidden;
   margin-bottom: 32px;
 }
-/* Inner border frame */
-.book-cover::after {
-  content:''; position:absolute; inset:13px;
-  border: 1px solid rgba(160,120,64,0.16);
-  border-radius: 1px 9px 9px 1px;
-  pointer-events:none;
+/* Thin gold top bar */
+.book-cover::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent 10%, var(--gold) 40%, var(--gold2) 60%, var(--gold) 90%, transparent);
 }
-/* Page edges */
-.book-pages {
-  position:absolute; right:-4px; top:5px; bottom:5px; width:7px;
-  background: repeating-linear-gradient(
-    180deg, #e5d8c0 0px, #e5d8c0 1px, #cfc0a0 2px, #cfc0a0 3px
-  );
-  border-radius:0 2px 2px 0;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.22);
-  z-index:2;
+/* Thin gold bottom bar */
+.book-cover::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent 20%, rgba(196,154,88,0.35) 50%, transparent 80%);
 }
 
 .c-orn {
   font-family: 'IM Fell English', serif;
-  color: var(--gold2); font-size:14px;
-  opacity:0.5; letter-spacing:0.25em;
-  position:relative; z-index:1;
+  color: var(--gold2); font-size:11px;
+  opacity:0.45; letter-spacing:0.3em;
+  margin-bottom: 18px;
 }
 .c-rule {
-  width:72px; height:1px;
-  background:linear-gradient(90deg,transparent,var(--gold2),transparent);
-  position:relative; z-index:1;
+  width:56px; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(196,154,88,0.55),transparent);
+  margin: 10px 0;
 }
 .c-zh {
   font-family: 'Playfair Display', 'Noto Serif SC', serif;
-  font-size:24px; font-weight:700;
+  font-size:30px; font-weight:700;
   color: var(--gold2);
-  letter-spacing:0.35em;
-  text-shadow:0 0 18px rgba(196,154,88,0.3);
-  position:relative; z-index:1;
-  line-height:1.25;
+  letter-spacing:0.38em;
+  /* Stamped gold effect */
+  text-shadow:
+    0 0 24px rgba(196,154,88,0.22),
+    0 1px 0 rgba(255,220,120,0.12),
+    0 -1px 0 rgba(80,50,10,0.4);
+  line-height:1.2;
 }
 .c-en {
   font-family: 'IM Fell English', serif;
-  font-style:italic; font-size:9.5px;
-  color:rgba(196,154,88,0.4);
-  letter-spacing:0.18em; text-align:center;
-  position:relative; z-index:1; line-height:1.6;
+  font-style:italic; font-size:10px;
+  color:rgba(196,154,88,0.32);
+  letter-spacing:0.2em; text-align:center;
+  line-height:1.7; margin-top:2px;
 }
+/* No .book-pages needed */
+.book-pages { display:none; }
 
 /* Ask card */
 .ask-card {
@@ -409,9 +405,13 @@ body::after {
   background:#120d06;
   display:flex; align-items:center; justify-content:center;
   animation:imgPop 0.45s cubic-bezier(0.34,1.3,0.64,1) both;
+  position:relative;
 }
-.cat-gif-box img {
-  width:100%; height:100%; object-fit:cover;
+/* Giphy iframe fills box, pointer-events off so tap falls through */
+.cat-gif-box iframe {
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  border:none; pointer-events:none;
 }
 
 .cat-caption {
@@ -502,12 +502,11 @@ body::after {
   <!-- Phase: Ask -->
   <div id="phase-ask">
     <div class="book-cover">
-      <div class="book-pages"></div>
       <div class="c-orn">✦ · · · ✦</div>
       <div class="c-rule"></div>
       <div class="c-zh">答案之书</div>
       <div class="c-rule"></div>
-      <div class="c-en">The Book<br>of Answers</div>
+      <div class="c-en">The Book of Answers</div>
       <div class="c-rule"></div>
       <div class="c-orn">✦ · · · ✦</div>
     </div>
@@ -585,26 +584,28 @@ const ANSWERS = [
   "你比昨天更勇敢了","放下评判，感受就好","这段路要自己走","没有什么大不了","轻轻的，放手"
 ];
 
-/* Tenor direct GIF URLs + captions */
+/* Giphy embed IDs + captions
+   Embed URL format: https://giphy.com/embed/{id}
+   Each is a well-known looping cat GIF */
 const CATS = [
   {
-    src: "https://media.tenor.com/gm8ZxhMfxBEAAAAC/cat-typing.gif",
+    id: "ICOgUNjpvO0PC",   // cat typing on keyboard
     cap: "🐱 你在摸鱼，但代码也在盯着你…"
   },
   {
-    src: "https://media.tenor.com/wnKVKFBsNAcAAAAC/cat-computer.gif",
+    id: "VbnUQpnihPSIgIXuZv", // cat working at computer
     cap: "😼 再玩 1 分钟就回去工作吧！"
   },
   {
-    src: "https://media.tenor.com/vRRtBNvSq_MAAAAC/cat-dance.gif",
+    id: "GeimqsH0TLDt4LkKE5", // cat dancing
     cap: "🐾 已为你请了 30 秒假，时间到啦~"
   },
   {
-    src: "https://media.tenor.com/4YxJTJxSbxgAAAAC/cat-seriously.gif",
+    id: "3oriO0OEd9QIDdllqo", // cat judging stare
     cap: "😾 老板的眼神比这本书更准，快回去吧"
   },
   {
-    src: "https://media.tenor.com/3ZpSJbCZqC8AAAAC/cat-shocked.gif",
+    id: "5i7umUqAOYYEqrpLWS", // cat shocked
     cap: "🙀 你的 KPI 正在发出哀嚎声…"
   }
 ];
@@ -652,7 +653,12 @@ function goWork() {
   const cat = CATS[Math.floor(Math.random() * CATS.length)];
   document.getElementById('catCaption').textContent = cat.cap;
   const box = document.getElementById('catGifBox');
-  box.innerHTML = '<img src="' + cat.src + '" alt="猫猫">';
+  // Giphy embed iframe — reliable, no CORS issues
+  box.innerHTML = `<iframe
+    src="https://giphy.com/embed/${cat.id}"
+    allowFullScreen
+    title="cat gif">
+  </iframe>`;
   document.getElementById('catOverlay').classList.add('visible');
 }
 function closeCatOverlay() {
