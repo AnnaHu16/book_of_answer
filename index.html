@@ -101,64 +101,32 @@ body::after {
   animation: fadeUp 0.8s 0.2s ease both;
 }
 
-/* Book cover — minimal black + gold */
-.book-cover {
-  width: 220px;
-  background: #0c0905;
-  border-radius: 2px;
-  box-shadow:
-    0 16px 48px rgba(0,0,0,0.42),
-    0 4px 12px rgba(0,0,0,0.28),
-    inset 0 0 0 1px rgba(160,120,64,0.08);
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  gap:0; padding:44px 28px 40px;
-  position:relative; overflow:hidden;
+/* Decorative ornament block (replaces book cover) */
+.book-ornament {
+  display:flex; flex-direction:column; align-items:center;
   margin-bottom: 32px;
+  animation: fadeUp 0.7s 0.1s ease both;
 }
-/* Thin gold top bar */
-.book-cover::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:2px;
-  background:linear-gradient(90deg, transparent 10%, var(--gold) 40%, var(--gold2) 60%, var(--gold) 90%, transparent);
+.orn-symbol {
+  font-size: 48px; line-height:1;
+  margin-bottom: 12px;
+  animation: floatSymbol 5s ease-in-out infinite;
+  filter: drop-shadow(0 2px 14px rgba(139,111,71,0.22));
 }
-/* Thin gold bottom bar */
-.book-cover::after {
-  content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg, transparent 20%, rgba(196,154,88,0.35) 50%, transparent 80%);
+@keyframes floatSymbol {
+  0%,100% { transform: translateY(0) rotate(-1.5deg); }
+  50%     { transform: translateY(-8px) rotate(1.5deg); }
 }
-
-.c-orn {
-  font-family: 'IM Fell English', serif;
-  color: var(--gold2); font-size:11px;
-  opacity:0.45; letter-spacing:0.3em;
-  margin-bottom: 18px;
+.orn-rule {
+  width: 44px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.5; margin: 7px 0;
 }
-.c-rule {
-  width:56px; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(196,154,88,0.55),transparent);
-  margin: 10px 0;
+.orn-label {
+  font-family: 'IM Fell English', serif; font-style:italic;
+  font-size: 11px; color: var(--sepia);
+  letter-spacing: 0.25em; opacity: 0.6;
 }
-.c-zh {
-  font-family: 'Playfair Display', 'Noto Serif SC', serif;
-  font-size:30px; font-weight:700;
-  color: var(--gold2);
-  letter-spacing:0.38em;
-  /* Stamped gold effect */
-  text-shadow:
-    0 0 24px rgba(196,154,88,0.22),
-    0 1px 0 rgba(255,220,120,0.12),
-    0 -1px 0 rgba(80,50,10,0.4);
-  line-height:1.2;
-}
-.c-en {
-  font-family: 'IM Fell English', serif;
-  font-style:italic; font-size:10px;
-  color:rgba(196,154,88,0.32);
-  letter-spacing:0.2em; text-align:center;
-  line-height:1.7; margin-top:2px;
-}
-/* No .book-pages needed */
-.book-pages { display:none; }
 
 /* Ask card */
 .ask-card {
@@ -399,20 +367,26 @@ body::after {
 .cat-overlay.visible{ display:flex; }
 
 .cat-gif-box {
-  width:min(270px,80vw); height:min(270px,80vw);
-  border-radius:10px; overflow:hidden;
+  width:min(260px,80vw); height:min(260px,80vw);
+  border-radius:16px; overflow:hidden;
   box-shadow:0 20px 60px rgba(0,0,0,0.55);
-  background:#120d06;
+  background:#1a1208;
   display:flex; align-items:center; justify-content:center;
   animation:imgPop 0.45s cubic-bezier(0.34,1.3,0.64,1) both;
   position:relative;
 }
-/* Giphy iframe fills box, pointer-events off so tap falls through */
-.cat-gif-box iframe {
-  position:absolute; inset:0;
-  width:100%; height:100%;
-  border:none; pointer-events:none;
+
+/* ── CSS Cat ── */
+.css-cat {
+  position:relative;
+  width:120px; height:120px;
+  animation: catBounce 0.5s ease-in-out infinite alternate;
 }
+@keyframes catBounce {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-10px); }
+}
+.css-cat svg { width:100%; height:100%; overflow:visible; }
 
 .cat-caption {
   background:var(--paper); border-radius:3px;
@@ -501,14 +475,10 @@ body::after {
 
   <!-- Phase: Ask -->
   <div id="phase-ask">
-    <div class="book-cover">
-      <div class="c-orn">✦ · · · ✦</div>
-      <div class="c-rule"></div>
-      <div class="c-zh">答案之书</div>
-      <div class="c-rule"></div>
-      <div class="c-en">The Book of Answers</div>
-      <div class="c-rule"></div>
-      <div class="c-orn">✦ · · · ✦</div>
+    <div class="book-ornament">
+      <div class="orn-symbol">📖</div>
+      <div class="orn-rule"></div>
+      <div class="orn-label">open the book · find your answer</div>
     </div>
 
     <div class="ask-card">
@@ -584,30 +554,176 @@ const ANSWERS = [
   "你比昨天更勇敢了","放下评判，感受就好","这段路要自己走","没有什么大不了","轻轻的，放手"
 ];
 
-/* Giphy embed IDs + captions
-   Embed URL format: https://giphy.com/embed/{id}
-   Each is a well-known looping cat GIF */
-const CATS = [
-  {
-    id: "ICOgUNjpvO0PC",   // cat typing on keyboard
-    cap: "🐱 你在摸鱼，但代码也在盯着你…"
-  },
-  {
-    id: "VbnUQpnihPSIgIXuZv", // cat working at computer
-    cap: "😼 再玩 1 分钟就回去工作吧！"
-  },
-  {
-    id: "GeimqsH0TLDt4LkKE5", // cat dancing
-    cap: "🐾 已为你请了 30 秒假，时间到啦~"
-  },
-  {
-    id: "3oriO0OEd9QIDdllqo", // cat judging stare
-    cap: "😾 老板的眼神比这本书更准，快回去吧"
-  },
-  {
-    id: "5i7umUqAOYYEqrpLWS", // cat shocked
-    cap: "🙀 你的 KPI 正在发出哀嚎声…"
-  }
+/* 20 random captions */
+const CAPTIONS = [
+  "🐱 你在摸鱼，但代码也在盯着你…",
+  "😼 再玩 1 分钟就回去工作吧！",
+  "🐾 已为你请了 30 秒假，时间到啦~",
+  "😾 老板的眼神比这本书更准，快回去吧",
+  "🙀 你的 KPI 正在发出哀嚎声…",
+  "😸 宇宙已回答，薪资还没到账呢",
+  "🐈 答案收到了，PPT 还没写完哦",
+  "😹 摸鱼被发现，后果自负（开玩笑）",
+  "🐱 命运已指引，但 deadline 不等人",
+  "😺 好了好了，去搬砖，今晚早点下班",
+  "🙈 继续摸？老板已上线……",
+  "😻 宇宙说：去干活，它会保佑你的",
+  "🐾 本猫已替你算好了，快回工位",
+  "😾 绩效表正在凝视你，快跑",
+  "🐈‍⬛ 再摸 5 秒，计时开始：5…4…3…",
+  "😼 工资是搬出来的，不是摸出来的",
+  "🐱 猫猫督促你：去喝杯水，然后干活",
+  "🙀 系统检测到摸鱼行为，已记录在案",
+  "😸 翻完书了？很好，现在翻一下需求文档",
+  "🐾 下班倒计时已启动，努力冲刺！"
+];
+
+/* 5 CSS animated cat SVG variants */
+const CAT_SVGS = [
+  /* Sitting cat — blinks + tail wag */
+  `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .ey{animation:blink 3.5s ease-in-out infinite;}
+      .tl{animation:wag 1s ease-in-out infinite alternate;transform-origin:72px 78px;}
+      @keyframes blink{0%,88%,100%{transform:scaleY(1)}93%{transform:scaleY(0.08)}}
+      @keyframes wag{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
+    </style>
+    <ellipse cx="50" cy="70" rx="22" ry="19" fill="#e8c88a"/>
+    <circle cx="50" cy="43" r="20" fill="#e8c88a"/>
+    <polygon points="34,27 28,11 42,23" fill="#e8c88a"/>
+    <polygon points="35,26 30,12 42,23" fill="#d4956a" opacity=".55"/>
+    <polygon points="66,27 72,11 58,23" fill="#e8c88a"/>
+    <polygon points="65,26 70,12 58,23" fill="#d4956a" opacity=".55"/>
+    <g class="ey">
+      <ellipse cx="43" cy="41" rx="4" ry="4.5" fill="#2c1810"/>
+      <ellipse cx="57" cy="41" rx="4" ry="4.5" fill="#2c1810"/>
+      <circle cx="44.5" cy="39.5" r="1.2" fill="white"/>
+      <circle cx="58.5" cy="39.5" r="1.2" fill="white"/>
+    </g>
+    <polygon points="50,48 48,50 52,50" fill="#d4956a"/>
+    <path d="M48,50 Q47,53 45,53 M52,50 Q53,53 55,53" stroke="#c9973a" stroke-width="1" fill="none" stroke-linecap="round"/>
+    <line x1="30" y1="48" x2="46" y2="50" stroke="#c9973a" stroke-width="0.8" opacity=".5"/>
+    <line x1="30" y1="52" x2="46" y2="52" stroke="#c9973a" stroke-width="0.8" opacity=".5"/>
+    <line x1="54" y1="50" x2="70" y2="48" stroke="#c9973a" stroke-width="0.8" opacity=".5"/>
+    <line x1="54" y1="52" x2="70" y2="52" stroke="#c9973a" stroke-width="0.8" opacity=".5"/>
+    <ellipse cx="38" cy="87" rx="8" ry="5" fill="#e0b87a"/>
+    <ellipse cx="62" cy="87" rx="8" ry="5" fill="#e0b87a"/>
+    <path class="tl" d="M72,79 Q88,68 84,54 Q82,46 76,50" stroke="#e8c88a" stroke-width="7" fill="none" stroke-linecap="round"/>
+  </svg>`,
+
+  /* Typing cat */
+  `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .pl{animation:pawL 0.45s ease-in-out infinite alternate;}
+      .pr{animation:pawR 0.45s 0.22s ease-in-out infinite alternate;}
+      .sc{animation:flicker 2s ease-in-out infinite;}
+      @keyframes pawL{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+      @keyframes pawR{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+      @keyframes flicker{0%,100%{opacity:1}50%{opacity:.82}}
+    </style>
+    <rect x="18" y="71" width="64" height="6" rx="2" fill="#3a2e22"/>
+    <rect x="22" y="55" width="56" height="18" rx="2" fill="#2c1810"/>
+    <rect x="24" y="57" width="52" height="14" rx="1" fill="#1a5276" class="sc"/>
+    <rect x="26" y="59" width="22" height="2" rx="1" fill="#5dade2" opacity=".7"/>
+    <rect x="26" y="63" width="32" height="2" rx="1" fill="#5dade2" opacity=".45"/>
+    <rect x="26" y="67" width="14" height="2" rx="1" fill="#58d68d" opacity=".6"/>
+    <ellipse cx="50" cy="59" rx="18" ry="13" fill="#e8c88a"/>
+    <circle cx="50" cy="37" r="17" fill="#e8c88a"/>
+    <polygon points="36,23 31,9 43,20" fill="#e8c88a"/>
+    <polygon points="37,22 33,10 43,20" fill="#d4956a" opacity=".55"/>
+    <polygon points="64,23 69,9 57,20" fill="#e8c88a"/>
+    <polygon points="63,22 67,10 57,20" fill="#d4956a" opacity=".55"/>
+    <path d="M39 35 Q43 32 47 35" stroke="#2c1810" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path d="M53 35 Q57 32 61 35" stroke="#2c1810" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <polygon points="50,41 48,43 52,43" fill="#d4956a"/>
+    <line x1="30" y1="41" x2="46" y2="43" stroke="#c9973a" stroke-width="0.8" opacity=".45"/>
+    <line x1="54" y1="43" x2="70" y2="41" stroke="#c9973a" stroke-width="0.8" opacity=".45"/>
+    <ellipse cx="36" cy="73" rx="7" ry="4" fill="#e0b87a" class="pl"/>
+    <ellipse cx="64" cy="73" rx="7" ry="4" fill="#e0b87a" class="pr"/>
+  </svg>`,
+
+  /* Shocked cat */
+  `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .shk{animation:shake .55s ease-in-out infinite;}
+      .sw{animation:sweat 1.6s ease-in-out infinite;}
+      @keyframes shake{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+      @keyframes sweat{0%{transform:translateY(0);opacity:.9}100%{transform:translateY(14px);opacity:0}}
+    </style>
+    <g class="shk">
+      <ellipse cx="50" cy="71" rx="20" ry="17" fill="#c8a870"/>
+      <circle cx="50" cy="45" r="20" fill="#c8a870"/>
+      <polygon points="30,29 22,14 36,25" fill="#c8a870"/>
+      <polygon points="31,28 24,15 36,25" fill="#b87850" opacity=".55"/>
+      <polygon points="70,29 78,14 64,25" fill="#c8a870"/>
+      <polygon points="69,28 76,15 64,25" fill="#b87850" opacity=".55"/>
+      <circle cx="42" cy="43" r="6" fill="white"/>
+      <circle cx="58" cy="43" r="6" fill="white"/>
+      <circle cx="42" cy="44" r="3.5" fill="#1a0f0a"/>
+      <circle cx="58" cy="44" r="3.5" fill="#1a0f0a"/>
+      <circle cx="43.5" cy="42.5" r="1.2" fill="white"/>
+      <circle cx="59.5" cy="42.5" r="1.2" fill="white"/>
+      <ellipse cx="50" cy="53" rx="4" ry="5" fill="#2c1810"/>
+      <line x1="28" y1="51" x2="44" y2="51" stroke="#a07840" stroke-width="0.8" opacity=".45"/>
+      <line x1="56" y1="51" x2="72" y2="51" stroke="#a07840" stroke-width="0.8" opacity=".45"/>
+    </g>
+    <path class="sw" d="M73 31 Q75 27 73 23 Q71 27 73 31Z" fill="#5dade2" opacity=".7"/>
+    <line x1="79" y1="21" x2="86" y2="15" stroke="#c9973a" stroke-width="1.4" opacity=".35" stroke-linecap="round"/>
+    <line x1="81" y1="27" x2="89" y2="25" stroke="#c9973a" stroke-width="1.4" opacity=".35" stroke-linecap="round"/>
+  </svg>`,
+
+  /* Sleepy loaf cat with ZZZ */
+  `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .z1{animation:zFloat 2.2s ease-in-out infinite;}
+      .z2{animation:zFloat 2.2s .75s ease-in-out infinite;}
+      @keyframes zFloat{0%{transform:translate(0,0);opacity:0}25%{opacity:.9}100%{transform:translate(10px,-22px);opacity:0}}
+    </style>
+    <ellipse cx="50" cy="73" rx="25" ry="15" fill="#d4b07a"/>
+    <circle cx="50" cy="47" r="20" fill="#d4b07a"/>
+    <polygon points="34,31 28,15 41,27" fill="#d4b07a"/>
+    <polygon points="35,30 30,16 41,27" fill="#c08050" opacity=".5"/>
+    <polygon points="66,31 72,15 59,27" fill="#d4b07a"/>
+    <polygon points="65,30 70,16 59,27" fill="#c08050" opacity=".5"/>
+    <path d="M38 45 Q42 41 46 45" stroke="#2c1810" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M54 45 Q58 41 62 45" stroke="#2c1810" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M46 53 Q50 55 54 53" stroke="#c08050" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <polygon points="50,50 48,52 52,52" fill="#c08050"/>
+    <line x1="28" y1="50" x2="44" y2="52" stroke="#a07840" stroke-width="0.8" opacity=".38"/>
+    <line x1="56" y1="52" x2="72" y2="50" stroke="#a07840" stroke-width="0.8" opacity=".38"/>
+    <text class="z1" x="67" y="37" font-size="10" fill="#c9973a" opacity=".75" font-family="Georgia,serif">z</text>
+    <text class="z2" x="72" y="28" font-size="13" fill="#c9973a" opacity=".6" font-family="Georgia,serif">z</text>
+  </svg>`,
+
+  /* Happy dancing cat with music notes */
+  `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .al{animation:waveL .65s ease-in-out infinite alternate;transform-origin:36px 63px;}
+      .ar{animation:waveR .65s ease-in-out infinite alternate;transform-origin:64px 63px;}
+      @keyframes waveL{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
+      @keyframes waveR{from{transform:rotate(22deg)}to{transform:rotate(-22deg)}}
+    </style>
+    <ellipse cx="50" cy="69" rx="19" ry="17" fill="#e8c060"/>
+    <ellipse cx="30" cy="66" rx="11" ry="5" fill="#e8c060" class="al" transform="rotate(-28,36,63)"/>
+    <ellipse cx="70" cy="66" rx="11" ry="5" fill="#e8c060" class="ar" transform="rotate(28,64,63)"/>
+    <circle cx="50" cy="43" r="20" fill="#e8c060"/>
+    <polygon points="34,27 28,11 43,23" fill="#e8c060"/>
+    <polygon points="35,26 30,12 43,23" fill="#d4a030" opacity=".5"/>
+    <polygon points="66,27 72,11 57,23" fill="#e8c060"/>
+    <polygon points="65,26 70,12 57,23" fill="#d4a030" opacity=".5"/>
+    <path d="M38 41 Q42 37 46 41" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M54 41 Q58 37 62 41" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M42 51 Q50 58 58 51" stroke="#2c1810" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <circle cx="40" cy="47" r="5" fill="#e88060" opacity=".22"/>
+    <circle cx="60" cy="47" r="5" fill="#e88060" opacity=".22"/>
+    <polygon points="50,48 48,50 52,50" fill="#d4a030"/>
+    <line x1="28" y1="47" x2="44" y2="49" stroke="#a07840" stroke-width="0.8" opacity=".4"/>
+    <line x1="56" y1="49" x2="72" y2="47" stroke="#a07840" stroke-width="0.8" opacity=".4"/>
+    <ellipse cx="42" cy="85" rx="7" ry="4" fill="#d4a030"/>
+    <ellipse cx="58" cy="85" rx="7" ry="4" fill="#d4a030"/>
+    <text x="70" y="30" font-size="13" fill="#c9973a" opacity=".55" font-family="Georgia,serif">♪</text>
+    <text x="14" y="38" font-size="10" fill="#c9973a" opacity=".45" font-family="Georgia,serif">♫</text>
+  </svg>`
 ];
 
 let pressInterval = null;
@@ -648,17 +764,12 @@ function askAgain() {
   }, 295);
 }
 
-/* Go work → cat */
+/* Go work → CSS animated cat */
 function goWork() {
-  const cat = CATS[Math.floor(Math.random() * CATS.length)];
-  document.getElementById('catCaption').textContent = cat.cap;
-  const box = document.getElementById('catGifBox');
-  // Giphy embed iframe — reliable, no CORS issues
-  box.innerHTML = `<iframe
-    src="https://giphy.com/embed/${cat.id}"
-    allowFullScreen
-    title="cat gif">
-  </iframe>`;
+  const cap = CAPTIONS[Math.floor(Math.random() * CAPTIONS.length)];
+  const svg = CAT_SVGS[Math.floor(Math.random() * CAT_SVGS.length)];
+  document.getElementById('catCaption').textContent = cap;
+  document.getElementById('catGifBox').innerHTML = `<div class="css-cat">${svg}</div>`;
   document.getElementById('catOverlay').classList.add('visible');
 }
 function closeCatOverlay() {
