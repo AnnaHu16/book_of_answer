@@ -1266,17 +1266,47 @@ async function generateAndShow() {
   if (isGenerating) return;
   isGenerating = true;
   showToast('正在生成图片… ✦');
+
   const ring = document.getElementById('pressRing');
   ring.style.display = 'none';
+
   try {
-    const canvas = await html2canvas(document.getElementById('answerCard'), {
-      scale: 3, backgroundColor: null, useCORS: true, logging: false
+    const card = document.getElementById('answerCard');
+
+    const canvas = await html2canvas(card, {
+      scale: 3,
+      backgroundColor: '#f4ead6',
+      useCORS: false,      // must be false when allowTaint is true
+      allowTaint: true,    // let cross-origin content paint (fonts, etc.)
+      logging: false,
+      foreignObjectRendering: false,
+      onclone: (clonedDoc) => {
+        const clonedCard = clonedDoc.getElementById('answerCard');
+        if (!clonedCard) return;
+        // Flatten gradient so it always renders
+        clonedCard.style.cssText +=
+          ';background:linear-gradient(160deg,#fefaf2 0%,#f8eed8 50%,#f0e2c0 100%) !important' +
+          ';box-shadow:none !important';
+        // Replace Google-font text with a web-safe serif so canvas doesn't block
+        clonedCard.querySelectorAll('*').forEach(el => {
+          el.style.fontFamily = 'Georgia,"Times New Roman",serif';
+        });
+        // Hide press ring
+        const pr = clonedCard.querySelector('.press-ring');
+        if (pr) pr.style.display = 'none';
+      }
     });
-    document.getElementById('savedImg').src = canvas.toDataURL('image/png');
+
+    const dataURL = canvas.toDataURL('image/png');
+    document.getElementById('savedImg').src = dataURL;
     document.getElementById('saveOverlay').classList.add('visible');
-  } catch(e) {
-    showToast('生成失败，请截图保存 📷');
+
+  } catch(err) {
+    console.error('html2canvas error:', err);
+    // Absolute fallback: native share or screenshot prompt
+    showToast('生成失败，请长按屏幕截图保存 📷');
   }
+
   ring.style.display = '';
   ring.style.opacity = '0';
   document.getElementById('pressCircle').style.strokeDashoffset = '176';
