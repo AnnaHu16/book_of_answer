@@ -861,9 +861,16 @@ body::after{
 
 /* Pet overlay extra buttons */
 .pet-interact {
-  display: flex; gap: 10px;
+  display: flex; gap: 8px;
   animation: fadeUp .4s .38s ease both;
 }
+.pet-interact .interact-btn {
+  font-size: 11px;
+  padding: 5px 11px;
+  gap: 4px;
+  opacity: .75;
+}
+.pet-interact .interact-btn:hover { opacity: 1; }
 </style>
 </head>
 <body>
@@ -890,6 +897,7 @@ body::after{
   <div class="pet-caption">
     <div class="pet-caption-txt" id="petCaption"></div>
   </div>
+  <button class="pet-close" onclick="closePetOverlay()">我知道了，这就去搬砖 →</button>
   <!-- 三个互动按钮移到这里 -->
   <div class="pet-interact">
     <button class="interact-btn like-btn" id="likeBtn" onclick="toggleLike()">
@@ -903,14 +911,13 @@ body::after{
       🐾 投稿猫狗发言
     </button>
   </div>
-  <button class="pet-close" onclick="closePetOverlay()">我知道了，这就去搬砖 →</button>
 </div>
 
 <!-- Comment board modal -->
 <div class="modal-overlay" id="commentModal">
   <div class="modal-card board-card">
     <div class="modal-title">💬 留 言 板</div>
-    <div class="modal-sub">公开留言所有人可见 · 私信仅 Anna 可见</div>
+    <div class="modal-sub">公开留言所有人可见</div>
 
     <!-- 公开留言列表 -->
     <div class="board-list" id="boardList"></div>
@@ -923,7 +930,7 @@ body::after{
     <!-- 可见性切换 -->
     <div class="vis-toggle">
       <div class="vis-opt active" id="visPrivate" onclick="setVis('private')">
-        <div class="vis-dot"></div>仅 Anna 可见
+        <div class="vis-dot"></div>留言给Jiaao
       </div>
       <div class="vis-opt" id="visPublic" onclick="setVis('public')">
         <div class="vis-dot"></div>公开留言
@@ -950,7 +957,7 @@ body::after{
     <div class="modal-sub">写下你心目中的搬砖台词，让宇宙的猫猫狗狗替你说出来</div>
     <textarea class="modal-textarea" id="submitText" rows="3" maxlength="50" placeholder="台词越短越好，50字以内…"></textarea>
     <div class="submit-hint">
-      <span class="hint-star">✦</span> 投稿后将进入审核，通过后才会出现在台词库<br>
+      <span class="hint-star">✦</span> 投稿后将进入审核，通过后才会展示<br>
       多来看看，说不定哪天会看到你的惊喜~
     </div>
     <div class="modal-btns">
@@ -961,8 +968,7 @@ body::after{
 </div>
 
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+
 <div class="app">
 
   <!-- Header -->
@@ -2213,7 +2219,7 @@ async function submitComment() {
     if (!r.ok) throw new Error();
     input.value = '';
     const isPublic = commentVisibility === 'public';
-    showToast(isPublic ? '留言已公开发出 ✨' : '留言已发送给 Anna 🌙');
+    showToast(isPublic ? '留言已公开发出 ✨' : '留言已发送给 Jiaao 🌙');
     if (isPublic) await loadComments();
   } catch(e) { showToast('发送失败，请稍后再试 ×'); }
 }
