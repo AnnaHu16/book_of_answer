@@ -110,8 +110,6 @@ async function sendFeishu(entry) {
   });
 }
 
-
-const FEISHU_WEBHOOK = process.env.FEISHU_WEBHOOK_URL;
 const BASE_URL       = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : process.env.BASE_URL || 'http://localhost:3000';
