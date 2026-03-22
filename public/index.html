@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>答案之书 · The Book of Answers</title>
+
+<!--
+  字体加载策略：
+  1. 主链路：fonts.loli.net（国内 Google Fonts 镜像，北京 CDN）
+  2. 备用：fonts.font.im（另一国内镜像）
+  3. 最终降级：CSS 里已设置系统衬线字体 fallback，页面可正常显示
+-->
+<link rel="preconnect" href="https://fonts.loli.net" crossorigin>
+<link href="https://fonts.loli.net/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@300;400;600;900&family=IM+Fell+English:ital@0;1&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet"
+  onerror="this.onerror=null;this.href='https://fonts.font.im/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@300;400;600;900&family=IM+Fell+English:ital@0;1&family=Noto+Sans+SC:wght@300;400&display=swap'">
+<style>
+/* ═══════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:       #f5ede0;
+  --bg2:      #ede3d4;
+  --paper:    #fdf8f0;
+  --ink:      #1c1510;
+  --ink2:     #362818;
+  --ink3:     #5a4230;
+  --sepia:    #8a6840;
+  --sepia2:   #6a5030;
+  --gold:     #b08840;
+  --gold2:    #d4aa60;
+  --gold3:    #f0cc88;
+  --rust:     #7a3820;
+  --border:   rgba(160,120,60,0.18);
+  --sh:       rgba(28,21,16,0.08);
+  --sh2:      rgba(28,21,16,0.16);
+  --sh3:      rgba(28,21,16,0.28);
+  --r:        6px;
+  /* 字体变量：Web字体 + 完整系统降级链 */
+  --f-display: 'Playfair Display', 'Noto Serif SC', 'Songti SC', 'SimSun', Georgia, serif;
+  --f-serif:   'Noto Serif SC', 'Songti SC', 'SimSun', Georgia, serif;
+  --f-italic:  'IM Fell English', 'Noto Serif SC', Georgia, serif;
+  --f-sans:    'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100vh;overflow-x:hidden;}
+
+body {
+  font-family:var(--f-serif);
+  color:var(--ink);
+  /* Layered warm gradient background */
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%,   rgba(220,185,120,0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 85% 100%,  rgba(200,160,90,0.22)  0%, transparent 55%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, #f8f0e3                0%, var(--bg)    100%);
+  position:relative;
+}
+
+/* Paper grain */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  opacity:.038;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Soft vignette */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(18,12,6,.14) 100%);
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+.app{
+  position:relative;z-index:1;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:56px 20px 88px;
+}
+
+/* ═══════════════════════════════════════════
+   DECORATIVE CORNER LINES (page frame feel)
+═══════════════════════════════════════════ */
+.frame-corner{
+  position:fixed;width:48px;height:48px;
+  pointer-events:none;z-index:2;opacity:.35;
+}
+.frame-corner::before,.frame-corner::after{
+  content:'';position:absolute;background:var(--gold);
+}
+.frame-corner::before{width:100%;height:1px;top:0;left:0;}
+.frame-corner::after {width:1px;height:100%;top:0;left:0;}
+.fc-tl{top:20px;left:20px;}
+.fc-tr{top:20px;right:20px;transform:scaleX(-1);}
+.fc-bl{bottom:20px;left:20px;transform:scaleY(-1);}
+.fc-br{bottom:20px;right:20px;transform:scale(-1);}
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+.header{
+  text-align:center;
+  margin-bottom:52px;
+  animation:fadeDown .9s ease both;
+}
+
+.header-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--ink2);
+  padding:5px 16px;border-radius:30px;
+  margin-bottom:18px;
+}
+.header-badge-dot{
+  width:4px;height:4px;border-radius:50%;
+  background:var(--gold2);
+}
+.header-badge-text{
+  font-family:var(--f-italic);font-style:italic;
+  font-size:10px;color:var(--gold2);letter-spacing:.3em;
+}
+
+.header-title{
+  font-family:var(--f-display);
+  font-size:clamp(44px,13vw,72px);
+  font-weight:700;
+  color:var(--ink2);
+  letter-spacing:.18em;
+  line-height:1;
+  /* Subtle emboss */
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.7),
+    0 -1px 0 rgba(28,21,16,.06),
+    0 6px 20px rgba(28,21,16,.09);
+}
+
+.header-meta{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-top:14px;
+}
+.hm-line{
+  flex:1;max-width:52px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold));
+}
+.hm-line:last-child{background:linear-gradient(90deg,var(--gold),transparent);}
+.hm-text{
+  font-family:var(--f-italic);font-style:italic;
+  font-size:12.5px;color:var(--gold);letter-spacing:.16em;
+}
+
+/* ═══════════════════════════════════════════
+   ORNAMENT (floating icon above ask card)
+═══════════════════════════════════════════ */
+.ornament{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  margin-bottom:28px;
+  animation:fadeUp .7s .1s ease both;
+}
+.orn-icon{
+  font-size:52px;line-height:1;
+  animation:floatOrn 5s ease-in-out infinite;
+  filter:drop-shadow(0 4px 16px rgba(176,136,64,.3));
+}
+@keyframes floatOrn{
+  0%,100%{transform:translateY(0) rotate(-2deg);}
+  50%    {transform:translateY(-10px) rotate(2deg);}
+}
+.orn-caption{
+  font-family:var(--f-italic);font-style:italic;
+  font-size:10.5px;color:var(--sepia);letter-spacing:.22em;opacity:.6;
+}
+
+/* ═══════════════════════════════════════════
+   ASK CARD
+═══════════════════════════════════════════ */
+#phase-ask{
+  display:flex;flex-direction:column;align-items:center;
+  width:100%;max-width:360px;
+  animation:fadeUp .8s .2s ease both;
+}
+
+.ask-card{
+  background:var(--paper);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:32px 28px 26px;
+  width:100%;text-align:center;
+  position:relative;
+  box-shadow:
+    0 2px 0 rgba(255,255,255,.9) inset,
+    0 8px 32px var(--sh),
+    0 1px 4px var(--sh);
+  /* Subtle inner glow */
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(220,185,120,.12) 0%, transparent 60%);
+}
+
+/* Gold top bar */
+.ask-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2.5px;
+  border-radius:var(--r) var(--r) 0 0;
+  background:linear-gradient(90deg,transparent 5%,var(--sepia2) 25%,var(--gold2) 50%,var(--sepia2) 75%,transparent 95%);
+}
+
+/* Faint watermark diamond pattern */
+.ask-card::after{
+  content:'◇  ◇  ◇';
+  position:absolute;bottom:12px;left:0;right:0;
+  text-align:center;font-size:8px;
+  color:var(--border);letter-spacing:.6em;
+  pointer-events:none;
+}
+
+.ask-title{
+  font-family:var(--f-display);
+  font-size:17px;font-weight:700;
+  color:var(--ink2);letter-spacing:.05em;
+  margin-bottom:6px;
+}
+.ask-sub{
+  font-size:14px;color:var(--sepia);
+  font-weight:300;line-height:1.9;letter-spacing:.04em;
+  margin-bottom:20px;
+}
+
+/* Animated breath indicator */
+.breath-row{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  margin-bottom:22px;
+}
+.bd{
+  border-radius:50%;background:var(--gold);
+  animation:breath 3s ease-in-out infinite;
+}
+.bd:nth-child(1){width:5px;height:5px;}
+.bd:nth-child(2){width:7px;height:7px;animation-delay:.5s;}
+.bd:nth-child(3){width:5px;height:5px;animation-delay:1s;}
+@keyframes breath{
+  0%,100%{transform:scale(.55);opacity:.22;}
+  50%    {transform:scale(1.1); opacity:.85;}
+}
+
+.reveal-btn{
+  width:100%;
+  background:var(--ink2);border:none;
+  border-radius:calc(var(--r) - 2px);
+  color:var(--gold2);
+  font-family:var(--f-serif);
+  font-size:15px;font-weight:400;
+  letter-spacing:.42em;
+  padding:16px 24px;
+  cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:background .22s,transform .12s,box-shadow .2s;
+  box-shadow:0 4px 16px var(--sh3),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.reveal-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(212,170,96,.1) 0%,transparent 55%);
+}
+.reveal-btn::after{
+  content:'';position:absolute;
+  left:-80%;top:0;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);
+  transform:skewX(-20deg);
+  transition:left .5s ease;
+}
+.reveal-btn:hover::after{left:130%;}
+.reveal-btn:hover{background:#120e09;box-shadow:0 6px 24px var(--sh3);}
+.reveal-btn:active{transform:scale(.975);}
+
+/* ═══════════════════════════════════════════
+   ANSWER PHASE
+═══════════════════════════════════════════ */
+#phase-answer{
+  display:none;flex-direction:column;align-items:center;
+  width:100%;max-width:360px;
+}
+#phase-answer.visible{display:flex;}
+
+.answer-wrap{
+  width:100%;
+  animation:cardReveal .7s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes cardReveal{
+  from{opacity:0;transform:translateY(26px) scale(.95);}
+  to  {opacity:1;transform:translateY(0)    scale(1);}
+}
+
+/* ─── Shareable answer card ─── */
+.answer-card{
+  background:linear-gradient(160deg,#fefaf2 0%,#f8eed8 50%,#f0e2c0 100%);
+  border-radius:var(--r);
+  padding:48px 32px 40px;
+  width:100%;text-align:center;
+  position:relative;overflow:hidden;
+  cursor:pointer;user-select:none;-webkit-user-select:none;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.95) inset,
+    0 16px 48px var(--sh2),
+    0 2px 8px var(--sh);
+}
+
+/* Top gradient border */
+.answer-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent 4%,var(--sepia2) 22%,var(--gold2) 50%,var(--sepia2) 78%,transparent 96%);
+}
+
+/* Ambient light blob top-right */
+.answer-card::after{
+  content:'';position:absolute;
+  top:-60px;right:-60px;
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(220,185,120,.18) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+/* Corner ornaments */
+.cr{position:absolute;width:18px;height:18px;opacity:.32;}
+.cr-tl{top:10px;left:10px;border-top:1.5px solid var(--gold);border-left:1.5px solid var(--gold);}
+.cr-tr{top:10px;right:10px;border-top:1.5px solid var(--gold);border-right:1.5px solid var(--gold);}
+.cr-bl{bottom:10px;left:10px;border-bottom:1.5px solid var(--gold);border-left:1.5px solid var(--gold);}
+.cr-br{bottom:10px;right:10px;border-bottom:1.5px solid var(--gold);border-right:1.5px solid var(--gold);}
+
+.ac-label{
+  font-family:var(--f-italic);font-style:italic;
+  font-size:11px;color:var(--sepia);letter-spacing:.26em;
+  opacity:.65;margin-bottom:20px;
+  position:relative;z-index:1;
+}
+.ac-rule{
+  width:48px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--sepia),transparent);
+  margin:0 auto 16px;opacity:.4;
+}
+.ac-answer{
+  font-family:var(--f-display);
+  font-size:clamp(20px,6.5vw,30px);font-weight:700;
+  color:var(--ink2);line-height:1.7;
+  letter-spacing:.06em;padding:4px 0 12px;
+  position:relative;z-index:1;
+  display:inline-block;
+  text-align:left;
+}
+.ac-page{
+  font-family:var(--f-italic);font-style:italic;
+  font-size:12px;color:var(--sepia);letter-spacing:.2em;
+  opacity:.6;position:relative;z-index:1;
+}
+.ac-brand{
+  font-size:9.5px;color:rgba(90,66,48,.28);
+  letter-spacing:.28em;margin-top:20px;
+  font-family:var(--f-italic);
+  position:relative;z-index:1;
+}
+
+/* Press ring */
+.press-ring{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:66px;height:66px;
+  pointer-events:none;opacity:0;z-index:10;
+}
+.press-ring circle{
+  fill:none;stroke:var(--gold2);stroke-width:2.5;
+  stroke-dasharray:176;stroke-dashoffset:176;
+  transform-origin:center;transform:rotate(-90deg);
+  transition:stroke-dashoffset .05s linear;
+}
+
+/* Save hint */
+.save-hint{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  margin-top:11px;
+  font-size:11px;color:var(--sepia);letter-spacing:.08em;
+  opacity:0;animation:fadeUp .5s .9s ease both;
+}
+.save-hint svg{width:12px;height:12px;}
+
+/* ═══════════════════════════════════════════
+   ACTION BUTTONS
+═══════════════════════════════════════════ */
+.actions{
+  display:flex;flex-direction:column;gap:10px;
+  width:100%;margin-top:18px;
+  animation:fadeUp .5s .4s ease both;
+}
+
+.btn-again{
+  background:var(--paper);
+  border:1.5px solid var(--sepia2);
+  border-radius:calc(var(--r) - 2px);
+  color:var(--ink2);
+  font-family:var(--f-serif);
+  font-size:14px;font-weight:400;letter-spacing:.24em;
+  padding:14px 20px;cursor:pointer;
+  transition:all .22s ease;
+  box-shadow:0 2px 8px var(--sh),inset 0 1px 0 rgba(255,255,255,.8);
+}
+.btn-again:hover{
+  background:#fff;
+  border-color:var(--sepia);
+  box-shadow:0 4px 18px var(--sh2);
+  transform:translateY(-1px);
+}
+.btn-again:active{transform:scale(.975);}
+
+.btn-work{
+  background:transparent;
+  border:1px solid rgba(90,66,48,.16);
+  border-radius:calc(var(--r) - 2px);
+  color:rgba(90,66,48,.42);
+  font-family:var(--f-sans);
+  font-size:12px;font-weight:300;letter-spacing:.12em;
+  padding:11px 20px;cursor:pointer;
+  transition:all .22s ease;
+}
+.btn-work:hover{border-color:rgba(90,66,48,.35);color:rgba(90,66,48,.7);}
+.btn-work:active{transform:scale(.975);}
+
+/* ═══════════════════════════════════════════
+   SAVE OVERLAY
+═══════════════════════════════════════════ */
+.save-overlay{
+  position:fixed;inset:0;
+  background:rgba(12,8,4,.72);
+  backdrop-filter:blur(10px);
+  z-index:200;
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:28px;
+  animation:overlayIn .3s ease;
+}
+.save-overlay.visible{display:flex;}
+@keyframes overlayIn{from{opacity:0;}to{opacity:1;}}
+
+.save-overlay img{
+  max-width:min(320px,88vw);
+  border-radius:var(--r);
+  box-shadow:0 24px 64px rgba(0,0,0,.55);
+  animation:imgPop .42s cubic-bezier(.34,1.3,.64,1) both;
+}
+@keyframes imgPop{
+  from{transform:scale(.84) translateY(10px);opacity:0;}
+  to  {transform:scale(1)   translateY(0);   opacity:1;}
+}
+
+.save-box{
+  background:var(--paper);border-radius:var(--r);
+  border:1px solid var(--border);
+  padding:15px 22px;text-align:center;
+  max-width:300px;margin-top:14px;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+}
+.save-box-t{font-size:14px;font-weight:600;color:var(--ink2);margin-bottom:4px;}
+.save-box-d{font-size:12px;color:var(--ink3);line-height:1.75;}
+
+.overlay-close{
+  margin-top:14px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
+  border-radius:calc(var(--r) - 2px);color:rgba(255,255,255,.72);
+  font-family:var(--f-serif);font-size:13px;
+  letter-spacing:.18em;padding:10px 38px;cursor:pointer;
+  transition:background .2s;
+}
+.overlay-close:hover{background:rgba(255,255,255,.18);}
+
+/* ═══════════════════════════════════════════
+   PET OVERLAY
+═══════════════════════════════════════════ */
+.pet-overlay{
+  position:fixed;inset:0;
+  background:rgba(12,8,4,.75);
+  backdrop-filter:blur(12px);
+  z-index:200;
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:32px;gap:16px;
+  animation:overlayIn .35s ease;
+}
+.pet-overlay.visible{display:flex;}
+
+.pet-stage{
+  width:min(260px,78vw);height:min(260px,78vw);
+  border-radius:20px;
+  background:linear-gradient(145deg,#1e1610,#120e08);
+  border:1px solid rgba(176,136,64,.15);
+  box-shadow:0 24px 64px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04);
+  display:flex;align-items:center;justify-content:center;
+  animation:imgPop .45s cubic-bezier(.34,1.3,.64,1) both;
+  overflow:hidden;
+  position:relative;
+}
+/* Ambient glow inside stage */
+.pet-stage::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 100%,rgba(176,136,64,.08) 0%,transparent 60%);
+}
+
+.pet-stage svg{
+  width:72%;height:72%;
+  filter:drop-shadow(0 4px 16px rgba(0,0,0,.4));
+}
+
+.pet-caption{
+  background:var(--paper);border-radius:var(--r);
+  border:1px solid var(--border);
+  padding:14px 22px;text-align:center;
+  max-width:300px;
+  box-shadow:0 4px 16px rgba(0,0,0,.18);
+  animation:fadeUp .4s .18s ease both;
+}
+.pet-caption-txt{
+  font-family:var(--f-serif);
+  font-size:14px;color:var(--ink2);
+  line-height:1.85;letter-spacing:.04em;
+}
+
+.pet-close{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
+  border-radius:calc(var(--r) - 2px);color:rgba(255,255,255,.72);
+  font-family:var(--f-serif);font-size:13px;
+  letter-spacing:.14em;padding:10px 32px;cursor:pointer;
+  transition:background .2s;
+  animation:fadeUp .4s .32s ease both;
+}
+.pet-close:hover{background:rgba(255,255,255,.18);}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+.toast{
+  position:fixed;bottom:36px;left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--ink2);color:var(--gold2);
+  font-family:var(--f-serif);
+  font-size:13px;letter-spacing:.1em;
+  padding:11px 24px;border-radius:30px;
+  box-shadow:0 8px 24px var(--sh3);
+  z-index:300;opacity:0;
+  transition:transform .42s cubic-bezier(.34,1.3,.64,1),opacity .4s ease;
+  white-space:nowrap;max-width:90vw;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+/* ═══════════════════════════════════════════
+   KEYFRAMES
+═══════════════════════════════════════════ */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeUp  {from{opacity:0;transform:translateY(18px); }to{opacity:1;transform:translateY(0);}}
+
+/* ═══════════════════════════════════════════
+   PET SVG SHARED ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes petBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+@keyframes tailWagR {from{transform:rotate(-20deg);}to{transform:rotate(20deg);}}
+@keyframes tailWagL {from{transform:rotate(20deg);}to{transform:rotate(-20deg);}}
+@keyframes blink    {0%,88%,100%{transform:scaleY(1);}93%{transform:scaleY(.08);}}
+@keyframes pawTypeU {from{transform:translateY(0);}to{transform:translateY(-6px);}}
+@keyframes shake    {0%,100%{transform:rotate(-3deg);}50%{transform:rotate(3deg);}}
+@keyframes zFloat   {0%{transform:translate(0,0);opacity:0;}30%{opacity:.9;}100%{transform:translate(12px,-24px);opacity:0;}}
+@keyframes waveArm  {from{transform:rotate(-22deg);}to{transform:rotate(22deg);}}
+@keyframes earPerk  {0%,80%,100%{transform:rotate(0);}85%{transform:rotate(-12deg);}}
+@keyframes noseSniff{0%,100%{transform:scale(1);}50%{transform:scale(1.25);}}
+@keyframes eyeShine {0%,100%{opacity:.6;}50%{opacity:1;}}
+@keyframes heartPop {0%{transform:scale(0);opacity:0;}50%{transform:scale(1.2);opacity:1;}100%{transform:scale(1) translateY(-10px);opacity:0;}}
+
+/* ═══════════════════════════════════════════
+   INTERACTION ROW (like + comment + submit)
+═══════════════════════════════════════════ */
+.interact-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+  animation: fadeUp .5s .55s ease both;
+}
+
+.interact-btn {
+  display: flex;align-items:center;gap:5px;
+  background: rgba(253,248,240,0.7);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  color: var(--sepia);
+  font-family: var(--f-serif);
+  font-size: 12px;
+  letter-spacing: .06em;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all .22s ease;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px var(--sh);
+}
+.interact-btn:hover {
+  background: var(--paper);
+  border-color: var(--sepia2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px var(--sh2);
+}
+.interact-btn:active { transform: scale(.96); }
+
+.like-btn.liked {
+  background: rgba(255,100,80,0.08);
+  border-color: rgba(200,80,60,0.3);
+  color: #c05040;
+}
+.like-btn.liked .like-icon { animation: likePop .35s cubic-bezier(.34,1.6,.64,1) both; }
+@keyframes likePop {
+  from{transform:scale(0.4);}to{transform:scale(1);}
+}
+.like-count { font-size: 11px; min-width: 12px; text-align:center; }
+
+/* ═══════════════════════════════════════════
+   MODAL BASE (shared by comment + submit)
+═══════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(12,8,4,.72);
+  backdrop-filter: blur(12px);
+  z-index: 250;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 28px;
+  animation: overlayIn .3s ease;
+}
+.modal-overlay.visible { display: flex; }
+
+.modal-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 28px 24px 22px;
+  width: 100%; max-width: 340px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.9);
+  position: relative;
+  animation: imgPop .4s cubic-bezier(.34,1.3,.64,1) both;
+}
+/* Gold top bar */
+.modal-card::before {
+  content:''; position:absolute; top:0;left:0;right:0;height:2.5px;
+  border-radius:var(--r) var(--r) 0 0;
+  background:linear-gradient(90deg,transparent 5%,var(--sepia2) 25%,var(--gold2) 50%,var(--sepia2) 75%,transparent 95%);
+}
+
+.modal-title {
+  font-family: var(--f-display);
+  font-size: 16px; font-weight: 700;
+  color: var(--ink2); letter-spacing: .05em;
+  margin-bottom: 4px;
+}
+.modal-sub {
+  font-size: 12px; color: var(--sepia);
+  line-height: 1.7; letter-spacing: .03em;
+  margin-bottom: 16px;
+}
+
+.modal-textarea {
+  width: 100%;
+  background: rgba(245,237,224,0.5);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--r) - 2px);
+  color: var(--ink);
+  font-family: var(--f-serif);
+  font-size: 13.5px; line-height: 1.75;
+  letter-spacing: .03em;
+  padding: 10px 13px;
+  resize: none;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.modal-textarea:focus {
+  border-color: var(--sepia2);
+  box-shadow: 0 0 0 3px rgba(138,104,64,0.1);
+}
+
+/* Visibility toggle */
+.vis-toggle {
+  display: flex; gap: 8px;
+  margin: 10px 0 14px;
+}
+.vis-opt {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  background: rgba(245,237,224,0.5);
+  border: 1.5px solid var(--border);
+  border-radius: calc(var(--r) - 2px);
+  color: var(--sepia);
+  font-family: var(--f-sans); font-size: 12px;
+  padding: 8px 6px; cursor: pointer;
+  transition: all .2s;
+}
+.vis-opt.active {
+  background: var(--ink2);
+  border-color: var(--ink2);
+  color: var(--gold2);
+}
+.vis-opt .vis-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; flex-shrink: 0;
+}
+
+/* Submit hint */
+.submit-hint {
+  font-size: 11px; color: var(--sepia);
+  line-height: 1.65; text-align: center;
+  margin-bottom: 14px; opacity: .75;
+  letter-spacing: .03em;
+}
+.submit-hint .hint-star { color: var(--gold); }
+
+/* Buttons row inside modal */
+.modal-btns {
+  display: flex; gap: 8px;
+}
+.modal-btn-cancel {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--r) - 2px);
+  color: var(--sepia);
+  font-family: var(--f-serif);
+  font-size: 13px; letter-spacing: .12em;
+  padding: 11px; cursor: pointer;
+  transition: all .2s;
+}
+.modal-btn-cancel:hover { border-color: var(--sepia2); color: var(--ink2); }
+
+.modal-btn-send {
+  flex: 2;
+  background: var(--ink2);
+  border: none;
+  border-radius: calc(var(--r) - 2px);
+  color: var(--gold2);
+  font-family: var(--f-serif);
+  font-size: 13px; letter-spacing: .14em;
+  padding: 11px; cursor: pointer;
+  transition: all .2s;
+  box-shadow: 0 4px 12px var(--sh3);
+}
+.modal-btn-send:hover { background: #120e09; }
+.modal-btn-send:active { transform: scale(.975); }
+</style>
+</head>
+<body>
+
+<!-- Page frame corners -->
+<div class="frame-corner fc-tl"></div>
+<div class="frame-corner fc-tr"></div>
+<div class="frame-corner fc-bl"></div>
+<div class="frame-corner fc-br"></div>
+
+<!-- Save overlay -->
+<div class="save-overlay" id="saveOverlay">
+  <img id="savedImg" src="" alt="答案卡片">
+  <div class="save-box">
+    <div class="save-box-t">📖 长按图片保存到相册</div>
+    <div class="save-box-d">桌面端可右键另存为<br>保存后发给需要它的人 ✨</div>
+  </div>
+  <button class="overlay-close" onclick="closeSaveOverlay()">关 闭</button>
+</div>
+
+<!-- Pet overlay -->
+<div class="pet-overlay" id="petOverlay">
+  <div class="pet-stage" id="petStage"></div>
+  <div class="pet-caption">
+    <div class="pet-caption-txt" id="petCaption"></div>
+  </div>
+  <button class="pet-close" onclick="closePetOverlay()">我知道了，这就去搬砖 →</button>
+</div>
+
+<!-- Comment modal -->
+<div class="modal-overlay" id="commentModal">
+  <div class="modal-card">
+    <div class="modal-title">💬 留 言</div>
+    <div class="modal-sub">说点什么吧～无论感受还是问候</div>
+    <textarea class="modal-textarea" id="commentText" rows="4" maxlength="300" placeholder="在这里写下你的留言…"></textarea>
+    <div class="vis-toggle">
+      <div class="vis-opt" id="visPrivate" onclick="setVis('private')">
+        <div class="vis-dot"></div>仅 Anna 可见
+      </div>
+      <div class="vis-opt" id="visPublic" onclick="setVis('public')">
+        <div class="vis-dot"></div>公开可见
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" onclick="closeModal('commentModal')">取 消</button>
+      <button class="modal-btn-send" onclick="submitComment()">发 送 ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- Submit caption modal -->
+<div class="modal-overlay" id="submitModal">
+  <div class="modal-card">
+    <div class="modal-title">✨ 投 稿 台 词</div>
+    <div class="modal-sub">写下你心目中的搬砖台词，让宇宙的猫猫狗狗替你说出来</div>
+    <textarea class="modal-textarea" id="submitText" rows="3" maxlength="50" placeholder="台词越短越好，50字以内…"></textarea>
+    <div class="submit-hint">
+      <span class="hint-star">✦</span> 投稿后将进入审核，通过后才会出现在台词库<br>
+      多来看看，说不定哪天会看到你的惊喜~
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" onclick="closeModal('submitModal')">取 消</button>
+      <button class="modal-btn-send" onclick="submitCaption()">投 稿 →</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-badge">
+      <div class="header-badge-dot"></div>
+      <div class="header-badge-text">The Book of Answers</div>
+      <div class="header-badge-dot"></div>
+    </div>
+    <div class="header-title">答案之书</div>
+    <div class="header-meta">
+      <div class="hm-line"></div>
+      <div class="hm-text">宇宙来回答</div>
+      <div class="hm-line"></div>
+    </div>
+  </header>
+
+  <!-- Phase: Ask -->
+  <div id="phase-ask">
+    <div class="ornament">
+      <div class="orn-icon">📖</div>
+      <div class="orn-caption">open the book · find your answer</div>
+    </div>
+    <div class="ask-card">
+      <div class="ask-title">在心里默想一个问题</div>
+      <div class="ask-sub">然后翻开这本书</div>
+      <div class="breath-row">
+        <div class="bd"></div>
+        <div class="bd"></div>
+        <div class="bd"></div>
+      </div>
+      <button class="reveal-btn" onclick="revealAnswer()">翻 开 答 案</button>
+    </div>
+  </div>
+
+  <!-- Phase: Answer -->
+  <div id="phase-answer">
+    <div class="answer-wrap">
+      <div class="answer-card" id="answerCard"
+           ontouchstart="startPress(event)" ontouchend="endPress()"
+           ontouchcancel="endPress()" onmousedown="startPress(event)"
+           onmouseup="endPress()" onmouseleave="endPress()">
+        <div class="cr cr-tl"></div><div class="cr cr-tr"></div>
+        <div class="cr cr-bl"></div><div class="cr cr-br"></div>
+        <div class="ac-label">The Book of Answers</div>
+        <div class="ac-rule"></div>
+        <div class="ac-answer" id="cardAnswer">—</div>
+        <div class="ac-rule"></div>
+        <div class="ac-page" id="cardPage">p. —</div>
+        <div class="ac-brand">答案之书 · 宇宙来回答</div>
+        <svg class="press-ring" id="pressRing">
+          <circle cx="33" cy="33" r="28" id="pressCircle"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="save-hint" id="saveHint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 15V3M8 11l4 4 4-4M19 21H5"/>
+      </svg>
+      <span>长按卡片 · 保存并分享</span>
+    </div>
+
+    <div class="actions">
+      <button class="btn-again" onclick="askAgain()">↺ &nbsp; 再 问 一 次</button>
+      <button class="btn-work" onclick="goWork()">好了，继续搬砖吧 →</button>
+    </div>
+
+    <!-- Interact row: like · comment · submit -->
+    <div class="interact-row" id="interactRow">
+      <button class="interact-btn like-btn" id="likeBtn" onclick="toggleLike()">
+        <span class="like-icon">🤍</span>
+        <span class="like-count" id="likeCount">—</span>
+      </button>
+      <button class="interact-btn" onclick="openModal('commentModal')">
+        💬 留言
+      </button>
+      <button class="interact-btn" onclick="openModal('submitModal')">
+        ✨ 投稿台词
+      </button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+/* ═══════════════════════════════
+   100 ANSWERS
+═══════════════════════════════ */
+const ANSWERS = [
+  // Decisive yes/no/maybe
+  "是的，就是现在","不是","也许吧","一定会的","绝对不会",
+  "值得等待","时机未到","时机已经成熟","现在还不是时候","毫无疑问",
+  // Action-oriented
+  "顺其自然","不必再等待","放手去做","先迈出第一步","从小处开始",
+  "别想太多，行动吧","无需解释，去做就好","停止等待别人的许可","大胆一点","只管去做",
+  // Reassurance
+  "你走在正确的路上","你早已知道答案了","相信你的直觉","你的感受是正确的","你不是一个人",
+  "有人在默默支持你","你比你以为的更强大","你已经足够好了","你值得拥有更好的","你比昨天更勇敢了",
+  // Time & patience
+  "让时间来回答","保持耐心","慢一点也没关系","留给时间","明天会更清晰",
+  "不必急于一时","这件事会过去的","事情正在悄悄好转","答案会自己来找你","好事正在路上",
+  // Let go
+  "放下不需要的执念","轻轻的，放手","接受它，然后前进","这一页翻过去就好","别和过去较劲了",
+  "放开手，反而会得到","是时候放下了","有些事无需强求","放下评判，感受就好","不要和自己较劲",
+  // Self-care
+  "先好好休息一下","先照顾好自己","好好睡一觉再说","去喝杯水，整理一下思绪","深呼吸，再决定",
+  "专注于当下","心静了，答案自来","做让你感到快乐的事","换个角度看","停下来也是一种前进",
+  // Connection
+  "去问那个人吧","去找那个人谈谈","说出来会轻松很多","有人正在想念你","把它写下来",
+  "不需要所有人的认可","不要勉强","去做那件你一直拖延的事","你知道该怎么做","告诉他／她",
+  // Growth & meaning
+  "这次选择会让你成长","不是失败，是经验","没有所谓完美时机","问题本身就是答案","一切自有安排",
+  "这段路要自己走","这件事比你想的简单","它比你以为的更值得","这是一次难得的机会","改变从现在开始",
+  // Hope & surprise
+  "惊喜即将到来","信任这个过程","相信好事会发生","这不是终点","无需担心",
+  "没有什么大不了","今天不是最后一天","你的付出没有白费","结果会让你惊喜","转机在意想不到处",
+  // Cosmic / poetic
+  "宇宙听见了","答案就在你心里","有时候不知道也没关系","这份担心是多余的","不用完美，先开始",
+  "那就去做吧","此刻即答案","万物皆有时","随它去吧","静待花开"
+];
+
+/* ═══════════════════════════════
+   43 WORK CAPTIONS
+═══════════════════════════════ */
+const CAPTIONS = [
+  "🐱 你在摸鱼，但代码也在盯着你…",
+  "😼 再玩1分钟就回去工作吧！",
+  "🐾 已为你请了30秒假，时间到啦~",
+  "😾 老板的眼神比这本书更准",
+  "🙀 你的ORK正在发出哀嚎声…",
+  "🐶 答案收到了，文档还没写完哦",
+  "🐕 摸鱼快乐，但DDL会哭泣",
+  "😺 去搬砖吧，今晚早点下班~",
+  "🐩 继续摸？老板已上线……",
+  "😻 宇宙说：去干活，它会保佑你的",
+  "🐾 本喵已替你算好，快回工位",
+  "🐈‍⬛ 再摸5秒，计时开始：5…4…3…",
+  "🐕‍🦺 汪汪提醒：去喝水，然后干活",
+  "🙀 检测到摸鱼行为，已记录在案",
+  "😸 翻完书了？很好，现在翻需求文档",
+  "🐾 下班倒计时已启动，冲鸭！",
+  "🚀 摸鱼不是始终创业者该有的状态",
+  "🌈 猫狗都能共存，你和工作也可以",
+  "💬 坦白说，你现在就是在摸鱼",
+  "⚡ 还差一点，追求极致就靠你了",
+  "🌱 你不干活，团队怎么共同成长？",
+  "🌙 浪漫问了宇宙，务实回去搬砖",
+  "🏔️ 高峰不是靠翻书翻出来的，冲！",
+  "🙏 现实一点：该干活了",
+  "📈 你的O还没完成，R就别想了",
+  "🤝 去吧，对齐一下优先级",
+  "🔍 数据显示你已摸鱼3分钟…",
+  "📋 Owner精神：这个任务没人认领？那就是你的了",
+  "💡 把摸鱼的时间用来想需求",
+  "🎯 目标很清晰——回去干活",
+  "🔄 摸鱼也要迭代，快迭代到干活状态",
+  "📣 给你一个反馈：现在是工作时间",
+  "🧠 深度思考了一下，结论是该搬砖了",
+  "🌍 放眼全球，没有顶尖人才在摸鱼",
+  "🏃 想法有了，差的就是执行",
+  "🎪 过程不重要，结果才重要",
+  "📦 宇宙已交付答案，你呢？",
+  "🛠️ 好的工程师此刻应该在写代码",
+  "🚨 继续摸鱼存在M-风险，请知悉",
+  "🎓 摸鱼算学习吗？去学点真东西吧",
+  "🌐 用户在等你的功能，不是在等你翻书",
+  "☀️ Always Day One：从停止摸鱼开始"
+];
+
+
+/* ═══════════════════════════════
+   15 CATS (SVG)
+═══════════════════════════════ */
+const CATS = [
+
+/* Cat 1 — Orange tabby blinks + tail wag */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c1ey{animation:blink 3.5s ease-in-out infinite;}.c1tl{animation:tailWagR .9s ease-in-out infinite alternate;transform-origin:90px 94px;}</style>
+<path class="c1tl" d="M90,94 Q108,80 104,62 Q102,52 94,56" stroke="#e8903a" stroke-width="9" stroke-linecap="round" fill="none"/>
+<ellipse cx="58" cy="86" rx="28" ry="24" fill="#f0a050"/><ellipse cx="58" cy="90" rx="16" ry="14" fill="#fbd8a8" opacity=".7"/>
+<circle cx="58" cy="52" r="26" fill="#f0a050"/>
+<polygon points="36,32 28,10 48,28" fill="#f0a050"/><polygon points="37,31 31,12 47,28" fill="#e07040" opacity=".6"/>
+<polygon points="80,32 88,10 68,28" fill="#f0a050"/><polygon points="79,31 85,12 69,28" fill="#e07040" opacity=".6"/>
+<g class="c1ey"><circle cx="49" cy="50" r="6" fill="#2c1810"/><circle cx="67" cy="50" r="6" fill="#2c1810"/><circle cx="51" cy="48" r="2" fill="white"/><circle cx="69" cy="48" r="2" fill="white"/></g>
+<polygon points="58,58 55,61 61,61" fill="#e05060"/>
+<path d="M55,61 Q53,65 50,65 M61,61 Q63,65 66,65" stroke="#c04050" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+<line x1="28" y1="59" x2="52" y2="61" stroke="#c07030" stroke-width=".9" opacity=".55"/><line x1="64" y1="61" x2="88" y2="59" stroke="#c07030" stroke-width=".9" opacity=".55"/>
+<ellipse cx="42" cy="108" rx="10" ry="6" fill="#e8903a"/><ellipse cx="74" cy="108" rx="10" ry="6" fill="#e8903a"/>
+<circle cx="38" cy="110" r="2.5" fill="#e05060" opacity=".55"/><circle cx="42" cy="112" r="2.5" fill="#e05060" opacity=".55"/><circle cx="46" cy="110" r="2.5" fill="#e05060" opacity=".55"/>
+</svg>`,
+
+/* Cat 2 — Grey typing cat */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c2pl{animation:pawTypeU .4s ease-in-out infinite alternate;}.c2pr{animation:pawTypeU .4s .2s ease-in-out infinite alternate;}.c2sc{animation:eyeShine 2s ease-in-out infinite;}</style>
+<rect x="16" y="84" width="88" height="8" rx="3" fill="#3a2e22"/><rect x="20" y="64" width="80" height="22" rx="3" fill="#2c1810"/>
+<rect x="23" y="67" width="74" height="16" rx="2" fill="#1a4060" class="c2sc"/>
+<rect x="26" y="70" width="28" height="2.5" rx="1" fill="#4aa8d8" opacity=".75"/><rect x="26" y="75" width="42" height="2" rx="1" fill="#4aa8d8" opacity=".5"/><rect x="26" y="79" width="20" height="2" rx="1" fill="#68d890" opacity=".65"/>
+<ellipse cx="60" cy="70" rx="22" ry="16" fill="#b8b0c0"/><circle cx="60" cy="46" r="22" fill="#b8b0c0"/>
+<polygon points="42,28 35,10 52,25" fill="#b8b0c0"/><polygon points="43,27 37,12 51,25" fill="#c890a8" opacity=".55"/>
+<polygon points="78,28 85,10 68,25" fill="#b8b0c0"/><polygon points="77,27 83,12 69,25" fill="#c890a8" opacity=".55"/>
+<path d="M46 44 Q52 39 58 44" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M62 44 Q68 39 74 44" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<polygon points="60,52 57,55 63,55" fill="#c890a8"/>
+<line x1="34" y1="53" x2="55" y2="54" stroke="#9080a0" stroke-width=".9" opacity=".5"/><line x1="65" y1="54" x2="86" y2="53" stroke="#9080a0" stroke-width=".9" opacity=".5"/>
+<ellipse cx="40" cy="87" rx="9" ry="5" fill="#a8a0b8" class="c2pl"/><ellipse cx="80" cy="87" rx="9" ry="5" fill="#a8a0b8" class="c2pr"/>
+</svg>`,
+
+/* Cat 3 — Black cat with floating hearts */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c3sh{animation:shake .5s ease-in-out infinite;}.c3h1{animation:heartPop 2s ease-in-out infinite;}.c3h2{animation:heartPop 2s .7s ease-in-out infinite;}</style>
+<g class="c3sh">
+<ellipse cx="60" cy="88" rx="24" ry="20" fill="#302830"/><ellipse cx="60" cy="92" rx="13" ry="11" fill="#504850" opacity=".8"/>
+<circle cx="60" cy="54" r="24" fill="#302830"/>
+<polygon points="38,34 30,12 48,30" fill="#302830"/><polygon points="39,33 32,14 47,30" fill="#503050" opacity=".5"/>
+<polygon points="82,34 90,12 72,30" fill="#302830"/><polygon points="81,33 88,14 73,30" fill="#503050" opacity=".5"/>
+<circle cx="50" cy="52" r="8" fill="#f8f8f8"/><circle cx="70" cy="52" r="8" fill="#f8f8f8"/>
+<circle cx="50" cy="53" r="5" fill="#1a0810"/><circle cx="70" cy="53" r="5" fill="#1a0810"/>
+<circle cx="52" cy="51" r="2" fill="white"/><circle cx="72" cy="51" r="2" fill="white"/>
+<ellipse cx="60" cy="64" rx="5" ry="6" fill="#1a0810"/>
+<line x1="28" y1="62" x2="53" y2="63" stroke="#604060" stroke-width="1" opacity=".5"/><line x1="67" y1="63" x2="92" y2="62" stroke="#604060" stroke-width="1" opacity=".5"/>
+<ellipse cx="36" cy="82" rx="9" ry="6" fill="#302830" transform="rotate(-20,36,82)"/><ellipse cx="84" cy="82" rx="9" ry="6" fill="#302830" transform="rotate(20,84,82)"/>
+</g>
+<text class="c3h1" x="85" y="32" font-size="16" fill="#ff6080" font-family="serif">♥</text>
+<text class="c3h2" x="22" y="28" font-size="12" fill="#ff8090" font-family="serif">♥</text>
+</svg>`,
+
+/* Cat 4 — Cream loaf sleeping ZZZ */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c4z1{animation:zFloat 2.4s ease-in-out infinite;}.c4z2{animation:zFloat 2.4s .8s ease-in-out infinite;}.c4z3{animation:zFloat 2.4s 1.6s ease-in-out infinite;}</style>
+<ellipse cx="60" cy="90" rx="32" ry="18" fill="#f0d8a0"/><circle cx="60" cy="60" r="24" fill="#f0d8a0"/>
+<polygon points="40,40 32,20 50,36" fill="#f0d8a0"/><polygon points="41,39 34,22 49,36" fill="#d8a870" opacity=".5"/>
+<polygon points="80,40 88,20 70,36" fill="#f0d8a0"/><polygon points="79,39 86,22 71,36" fill="#d8a870" opacity=".5"/>
+<path d="M46 58 Q52 53 58 58" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M62 58 Q68 53 74 58" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<polygon points="60,65 57,68 63,68" fill="#d8a870"/>
+<circle cx="46" cy="65" r="7" fill="#f09080" opacity=".2"/><circle cx="74" cy="65" r="7" fill="#f09080" opacity=".2"/>
+<line x1="30" y1="64" x2="54" y2="66" stroke="#c8a060" stroke-width=".9" opacity=".4"/><line x1="66" y1="66" x2="90" y2="64" stroke="#c8a060" stroke-width=".9" opacity=".4"/>
+<ellipse cx="44" cy="102" rx="12" ry="6" fill="#e8c888"/><ellipse cx="76" cy="102" rx="12" ry="6" fill="#e8c888"/>
+<text class="c4z1" x="82" y="46" font-size="12" fill="#c8a060" opacity=".8" font-family="Georgia,serif" font-weight="bold">z</text>
+<text class="c4z2" x="88" y="35" font-size="16" fill="#c8a060" opacity=".65" font-family="Georgia,serif" font-weight="bold">z</text>
+<text class="c4z3" x="94" y="22" font-size="10" fill="#c8a060" opacity=".5" font-family="Georgia,serif" font-weight="bold">z</text>
+</svg>`,
+
+/* Cat 5 — Dancing calico music notes */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c5al{animation:waveArm .6s ease-in-out infinite alternate;transform-origin:34px 76px;}.c5ar{animation:waveArm .6s ease-in-out infinite alternate reverse;transform-origin:86px 76px;}.c5tl{animation:tailWagL .7s ease-in-out infinite alternate;transform-origin:28px 98px;}</style>
+<path class="c5tl" d="M28,98 Q12,82 18,64 Q22,52 30,58" stroke="#e8b060" stroke-width="9" fill="none" stroke-linecap="round"/>
+<ellipse cx="60" cy="82" rx="24" ry="22" fill="#f8f0e0"/>
+<ellipse cx="52" cy="78" rx="10" ry="8" fill="#f09840" opacity=".55"/>
+<circle cx="60" cy="50" r="24" fill="#f8f0e0"/>
+<polygon points="38,30 30,8 50,26" fill="#f8f0e0"/><polygon points="39,29 33,10 49,26" fill="#f09080" opacity=".55"/>
+<polygon points="82,30 90,8 70,26" fill="#f8f0e0"/><polygon points="81,29 87,10 71,26" fill="#f09080" opacity=".55"/>
+<path d="M46 48 Q52 43 58 48" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M62 48 Q68 43 74 48" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<circle cx="44" cy="56" r="8" fill="#f09080" opacity=".28"/><circle cx="76" cy="56" r="8" fill="#f09080" opacity=".28"/>
+<polygon points="60,56 57,59 63,59" fill="#f09080"/>
+<path d="M50 62 Q60 70 70 62" stroke="#2c1810" stroke-width="2" fill="none" stroke-linecap="round"/>
+<line x1="28" y1="56" x2="54" y2="58" stroke="#c8a060" stroke-width=".9" opacity=".5"/><line x1="66" y1="58" x2="92" y2="56" stroke="#c8a060" stroke-width=".9" opacity=".5"/>
+<ellipse cx="28" cy="80" rx="12" ry="6" fill="#f0d8a0" class="c5al" transform="rotate(-30,34,76)"/>
+<ellipse cx="92" cy="80" rx="12" ry="6" fill="#f0d8a0" class="c5ar" transform="rotate(30,86,76)"/>
+<ellipse cx="48" cy="104" rx="9" ry="5" fill="#f0d8a0"/><ellipse cx="72" cy="104" rx="9" ry="5" fill="#f0d8a0"/>
+<text x="92" y="36" font-size="16" fill="#f0b040" opacity=".6" font-family="Georgia,serif">♪</text>
+<text x="12" y="44" font-size="13" fill="#f0b040" opacity=".5" font-family="Georgia,serif">♫</text>
+</svg>`,
+
+/* Cat 6 — White kitten big blue eyes bouncing */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c6b{animation:petBounce 1.2s ease-in-out infinite;}.c6tl{animation:tailWagR .8s ease-in-out infinite alternate;transform-origin:88px 90px;}</style>
+<path class="c6tl" d="M88,90 Q106,76 100,58" stroke="#e8e0d8" stroke-width="8" fill="none" stroke-linecap="round"/>
+<g class="c6b">
+<ellipse cx="60" cy="84" rx="26" ry="22" fill="#f4f0ea"/><ellipse cx="60" cy="88" rx="14" ry="12" fill="#fff" opacity=".7"/>
+<circle cx="60" cy="50" r="25" fill="#f4f0ea"/>
+<polygon points="38,30 30,8 48,27" fill="#f4f0ea"/><polygon points="39,29 32,10 47,27" fill="#f0c0c8" opacity=".6"/>
+<polygon points="82,30 90,8 72,27" fill="#f4f0ea"/><polygon points="81,29 88,10 73,27" fill="#f0c0c8" opacity=".6"/>
+<circle cx="49" cy="49" r="8" fill="#6ab0e8"/><circle cx="71" cy="49" r="8" fill="#6ab0e8"/>
+<circle cx="49" cy="50" r="5" fill="#1a0810"/><circle cx="71" cy="50" r="5" fill="#1a0810"/>
+<circle cx="51" cy="47" r="2.5" fill="white"/><circle cx="73" cy="47" r="2.5" fill="white"/>
+<polygon points="60,58 57,61 63,61" fill="#f0a0b0"/>
+<path d="M56,61 Q54,65 51,65 M64,61 Q66,65 69,65" stroke="#e08090" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+<circle cx="44" cy="58" r="7" fill="#f0a0b0" opacity=".25"/><circle cx="76" cy="58" r="7" fill="#f0a0b0" opacity=".25"/>
+<line x1="30" y1="58" x2="53" y2="60" stroke="#c0a0b0" stroke-width=".9" opacity=".5"/><line x1="67" y1="60" x2="90" y2="58" stroke="#c0a0b0" stroke-width=".9" opacity=".5"/>
+</g></svg>`,
+
+/* Cat 7 — Nyan rainbow pop-tart cat */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c7b{animation:petBounce .7s ease-in-out infinite;}</style>
+<rect x="0" y="52" width="30" height="5" rx="2" fill="#f87060" opacity=".7"/>
+<rect x="0" y="58" width="28" height="5" rx="2" fill="#f0b040" opacity=".7"/>
+<rect x="0" y="64" width="26" height="5" rx="2" fill="#78d060" opacity=".7"/>
+<rect x="0" y="70" width="24" height="5" rx="2" fill="#60b8f0" opacity=".7"/>
+<g class="c7b">
+<rect x="36" y="46" width="64" height="48" rx="10" fill="#f4c8d8"/>
+<rect x="40" y="50" width="56" height="40" rx="8" fill="#f8d8e8"/>
+<rect x="48" y="56" width="6" height="3" rx="1" fill="#f06080" transform="rotate(30,51,57)"/>
+<rect x="62" y="60" width="6" height="3" rx="1" fill="#60d0a0" transform="rotate(-20,65,61)"/>
+<rect x="74" y="54" width="6" height="3" rx="1" fill="#6080f0" transform="rotate(10,77,55)"/>
+<rect x="52" y="70" width="6" height="3" rx="1" fill="#f0b040" transform="rotate(-30,55,71)"/>
+<circle cx="68" cy="46" r="22" fill="#f4c8d8"/>
+<polygon points="50,28 43,8 60,25" fill="#f4c8d8"/><polygon points="51,27 45,10 59,25" fill="#f090b0" opacity=".55"/>
+<polygon points="86,28 93,8 76,25" fill="#f4c8d8"/><polygon points="85,27 91,10 77,25" fill="#f090b0" opacity=".55"/>
+<text x="56" y="51" font-size="13" fill="#2c1810" text-anchor="middle" font-family="serif">★</text>
+<text x="80" y="51" font-size="13" fill="#2c1810" text-anchor="middle" font-family="serif">★</text>
+<polygon points="68,54 65,57 71,57" fill="#f090b0"/>
+<path d="M62 60 Q68 66 74 60" stroke="#2c1810" stroke-width="2" fill="none" stroke-linecap="round"/>
+<ellipse cx="46" cy="90" rx="8" ry="10" fill="#f4c8d8"/><ellipse cx="90" cy="90" rx="8" ry="10" fill="#f4c8d8"/>
+</g></svg>`,
+
+/* Cat 8 — Sad business cat with tie */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c8ey{animation:blink 2s ease-in-out infinite;}.c8tl{animation:tailWagL .6s ease-in-out infinite alternate;transform-origin:22px 90px;}</style>
+<path class="c8tl" d="M22,90 Q6,76 10,58" stroke="#708090" stroke-width="8" fill="none" stroke-linecap="round"/>
+<ellipse cx="60" cy="84" rx="26" ry="22" fill="#708090"/>
+<ellipse cx="60" cy="88" rx="14" ry="14" fill="#f0f0f0"/>
+<polygon points="60,74 56,80 60,96 64,80" fill="#c03040"/>
+<polygon points="57,74 63,74 61,78 59,78" fill="#a02030"/>
+<circle cx="60" cy="54" r="24" fill="#708090"/>
+<polygon points="38,33 30,12 48,29" fill="#708090"/><polygon points="82,33 90,12 72,29" fill="#708090"/>
+<g class="c8ey">
+<circle cx="49" cy="52" r="7" fill="#2c1810"/><circle cx="71" cy="52" r="7" fill="#2c1810"/>
+<circle cx="48" cy="54" r="2.5" fill="white"/><circle cx="70" cy="54" r="2.5" fill="white"/>
+</g>
+<path d="M43 44 Q49 47 55 44" stroke="#506070" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M65 44 Q71 47 77 44" stroke="#506070" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M52 64 Q60 62 68 64" stroke="#2c1810" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<polygon points="60,61 57,64 63,64" fill="#506070"/>
+<line x1="30" y1="60" x2="52" y2="62" stroke="#506070" stroke-width=".9" opacity=".4"/><line x1="68" y1="62" x2="90" y2="60" stroke="#506070" stroke-width=".9" opacity=".4"/>
+<ellipse cx="40" cy="106" rx="10" ry="6" fill="#607080"/><ellipse cx="80" cy="106" rx="10" ry="6" fill="#607080"/>
+</svg>`,
+
+/* Cat 9 — Pink cat blowing kiss */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c9h{animation:heartPop 1.5s ease-in-out infinite;}.c9b{animation:petBounce 1.4s ease-in-out infinite;}</style>
+<g class="c9b">
+<ellipse cx="60" cy="84" rx="24" ry="20" fill="#f8c0d0"/><ellipse cx="60" cy="88" rx="13" ry="11" fill="#fce8f0" opacity=".8"/>
+<circle cx="60" cy="52" r="24" fill="#f8c0d0"/>
+<polygon points="40,32 32,12 50,28" fill="#f8c0d0"/><polygon points="41,31 34,14 49,28" fill="#f090a8" opacity=".6"/>
+<polygon points="80,32 88,12 70,28" fill="#f8c0d0"/><polygon points="79,31 86,14 71,28" fill="#f090a8" opacity=".6"/>
+<path d="M43 49 Q49 45 55 49" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<circle cx="71" cy="49" r="7" fill="#2c1810"/><circle cx="73" cy="47" r="2.2" fill="white"/>
+<polygon points="60,57 57,60 63,60" fill="#f090a8"/>
+<ellipse cx="60" cy="64" rx="5" ry="4" fill="#f060a0"/>
+<circle cx="46" cy="58" r="7" fill="#f090a8" opacity=".3"/><circle cx="74" cy="58" r="7" fill="#f090a8" opacity=".3"/>
+<line x1="30" y1="57" x2="54" y2="59" stroke="#e090b0" stroke-width=".9" opacity=".5"/><line x1="66" y1="59" x2="90" y2="57" stroke="#e090b0" stroke-width=".9" opacity=".5"/>
+<ellipse cx="44" cy="104" rx="9" ry="5" fill="#f0a0c0"/><ellipse cx="76" cy="104" rx="9" ry="5" fill="#f0a0c0"/>
+</g>
+<text class="c9h" x="82" y="38" font-size="18" fill="#f06090" font-family="serif">♥</text>
+</svg>`,
+
+/* Cat 10 — Yawning stretching cat */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c10al{animation:waveArm .8s ease-in-out infinite alternate;transform-origin:32px 72px;}.c10ar{animation:waveArm .8s .1s ease-in-out infinite alternate reverse;transform-origin:88px 72px;}.c10tl{animation:tailWagR .7s ease-in-out infinite alternate;transform-origin:94px 84px;}</style>
+<path class="c10tl" d="M94,84 Q112,68 106,50" stroke="#e07828" stroke-width="9" fill="none" stroke-linecap="round"/>
+<ellipse cx="58" cy="80" rx="26" ry="20" fill="#e88030"/><ellipse cx="58" cy="84" rx="15" ry="12" fill="#f8c870" opacity=".65"/>
+<ellipse cx="30" cy="60" rx="11" ry="6" fill="#e88030" class="c10al" transform="rotate(-50,32,72)"/>
+<ellipse cx="86" cy="60" rx="11" ry="6" fill="#e88030" class="c10ar" transform="rotate(50,88,72)"/>
+<circle cx="58" cy="48" r="24" fill="#e88030"/>
+<polygon points="38,28 30,8 48,25" fill="#e88030"/><polygon points="78,28 86,8 68,25" fill="#e88030"/>
+<path d="M43 46 Q49 42 55 46" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M61 46 Q67 42 73 46" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="58" cy="60" rx="10" ry="12" fill="#2c1810"/>
+<ellipse cx="58" cy="58" rx="8" ry="5" fill="#e05060" opacity=".8"/>
+<ellipse cx="58" cy="68" rx="5" ry="4" fill="#f06080"/>
+<line x1="28" y1="55" x2="51" y2="57" stroke="#c07030" stroke-width=".9" opacity=".5"/><line x1="65" y1="57" x2="88" y2="55" stroke="#c07030" stroke-width=".9" opacity=".5"/>
+<ellipse cx="40" cy="100" rx="10" ry="6" fill="#d87020"/><ellipse cx="76" cy="100" rx="10" ry="6" fill="#d87020"/>
+</svg>`,
+
+/* Cat 11 — Tuxedo cat with monocle */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c11ey{animation:blink 4s ease-in-out infinite;}.c11tl{animation:tailWagR 1s ease-in-out infinite alternate;transform-origin:92px 88px;}</style>
+<path class="c11tl" d="M92,88 Q110,72 106,54" stroke="#202020" stroke-width="9" fill="none" stroke-linecap="round"/>
+<ellipse cx="60" cy="84" rx="26" ry="22" fill="#202020"/><ellipse cx="60" cy="86" rx="14" ry="16" fill="#f8f8f8"/>
+<polygon points="52,76 60,80 52,84" fill="#c03040"/><polygon points="68,76 60,80 68,84" fill="#c03040"/>
+<circle cx="60" cy="80" r="3" fill="#a02030"/>
+<circle cx="60" cy="50" r="24" fill="#202020"/>
+<polygon points="38,30 30,10 48,27" fill="#202020"/><polygon points="80,30 88,10 72,27" fill="#202020"/>
+<g class="c11ey">
+<circle cx="49" cy="50" r="7" fill="#2c8060"/><circle cx="71" cy="50" r="7" fill="#2c8060"/>
+<circle cx="49" cy="50" r="4" fill="#1a0810"/><circle cx="71" cy="50" r="4" fill="#1a0810"/>
+<circle cx="50.5" cy="48.5" r="1.8" fill="white"/><circle cx="72.5" cy="48.5" r="1.8" fill="white"/>
+</g>
+<circle cx="71" cy="50" r="10" fill="none" stroke="#c8a040" stroke-width="1.5" opacity=".8"/>
+<line x1="79" y1="57" x2="85" y2="64" stroke="#c8a040" stroke-width="1.2"/>
+<polygon points="60,58 57,61 63,61" fill="#c09080"/>
+<path d="M52 65 Q60 68 68 65" stroke="#e0e0e0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<line x1="28" y1="58" x2="52" y2="60" stroke="#808080" stroke-width=".9" opacity=".5"/><line x1="68" y1="60" x2="92" y2="58" stroke="#808080" stroke-width=".9" opacity=".5"/>
+<ellipse cx="40" cy="106" rx="10" ry="6" fill="#303030"/><ellipse cx="80" cy="106" rx="10" ry="6" fill="#303030"/>
+</svg>`,
+
+/* Cat 12 — Cross-eyed derpy cat with tongue */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c12b{animation:petBounce .9s ease-in-out infinite;}.c12tl{animation:tailWagL .65s ease-in-out infinite alternate;transform-origin:26px 92px;}</style>
+<path class="c12tl" d="M26,92 Q8,78 12,60" stroke="#c89860" stroke-width="9" fill="none" stroke-linecap="round"/>
+<g class="c12b">
+<ellipse cx="60" cy="84" rx="26" ry="22" fill="#d8a860"/><ellipse cx="60" cy="88" rx="15" ry="13" fill="#f0c880" opacity=".7"/>
+<circle cx="60" cy="50" r="24" fill="#d8a860"/>
+<polygon points="38,30 30,10 49,27" fill="#d8a860"/><polygon points="39,29 32,12 48,27" fill="#b88040" opacity=".6"/>
+<polygon points="82,30 90,10 71,27" fill="#d8a860"/><polygon points="81,29 88,12 72,27" fill="#b88040" opacity=".6"/>
+<line x1="43" y1="45" x2="55" y2="57" stroke="#2c1810" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="55" y1="45" x2="43" y2="57" stroke="#2c1810" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="65" y1="45" x2="77" y2="57" stroke="#2c1810" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="77" y1="45" x2="65" y2="57" stroke="#2c1810" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="60,61 57,64 63,64" fill="#c87050"/>
+<ellipse cx="64" cy="70" rx="5" ry="6" fill="#f06080" transform="rotate(15,64,70)"/>
+<circle cx="44" cy="62" r="7" fill="#e07050" opacity=".25"/><circle cx="76" cy="62" r="7" fill="#e07050" opacity=".25"/>
+<line x1="28" y1="60" x2="53" y2="62" stroke="#a07040" stroke-width=".9" opacity=".5"/><line x1="67" y1="62" x2="92" y2="60" stroke="#a07040" stroke-width=".9" opacity=".5"/>
+<ellipse cx="42" cy="106" rx="10" ry="6" fill="#c09050"/><ellipse cx="78" cy="106" rx="10" ry="6" fill="#c09050"/>
+</g></svg>`,
+
+/* Cat 13 — Fluffy Persian with flower crown */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c13b{animation:petBounce 1.8s ease-in-out infinite;}.c13tl{animation:tailWagR 1.2s ease-in-out infinite alternate;transform-origin:92px 90px;}</style>
+<path class="c13tl" d="M92,90 Q110,74 104,56" stroke="#f0ece8" stroke-width="10" fill="none" stroke-linecap="round"/>
+<g class="c13b">
+<ellipse cx="60" cy="84" rx="30" ry="26" fill="#f0ece8"/><ellipse cx="60" cy="82" rx="26" ry="22" fill="#fff" opacity=".6"/>
+<circle cx="60" cy="50" r="26" fill="#f0ece8"/><circle cx="60" cy="52" r="22" fill="#fff" opacity=".5"/>
+<polygon points="40,30 34,14 50,28" fill="#f0ece8"/><polygon points="80,30 86,14 70,28" fill="#f0ece8"/>
+<circle cx="44" cy="26" r="6" fill="#f06080"/><circle cx="44" cy="26" r="3" fill="#f8e040"/>
+<circle cx="54" cy="20" r="6" fill="#f0a030"/><circle cx="54" cy="20" r="3" fill="#fff"/>
+<circle cx="66" cy="20" r="6" fill="#80c040"/><circle cx="66" cy="20" r="3" fill="#f8e040"/>
+<circle cx="76" cy="26" r="6" fill="#6090f0"/><circle cx="76" cy="26" r="3" fill="#fff"/>
+<circle cx="49" cy="50" r="7" fill="#6090d8"/><circle cx="71" cy="50" r="7" fill="#6090d8"/>
+<circle cx="49" cy="51" r="4.5" fill="#1a0810"/><circle cx="71" cy="51" r="4.5" fill="#1a0810"/>
+<circle cx="50.5" cy="49" r="2" fill="white"/><circle cx="72.5" cy="49" r="2" fill="white"/>
+<circle cx="60" cy="60" r="5" fill="#f090a0"/>
+<path d="M54 64 Q60 68 66 64" stroke="#2c1810" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<circle cx="44" cy="62" r="8" fill="#f090a0" opacity=".25"/><circle cx="76" cy="62" r="8" fill="#f090a0" opacity=".25"/>
+<line x1="28" y1="60" x2="53" y2="62" stroke="#d0c0c0" stroke-width=".9" opacity=".5"/><line x1="67" y1="62" x2="92" y2="60" stroke="#d0c0c0" stroke-width=".9" opacity=".5"/>
+</g></svg>`,
+
+/* Cat 14 — Detective cat with magnifying glass */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c14ey{animation:blink 3s ease-in-out infinite;}.c14mg{animation:tailWagR .8s ease-in-out infinite alternate;transform-origin:90px 80px;}</style>
+<ellipse cx="58" cy="84" rx="26" ry="22" fill="#5a4a38"/><ellipse cx="58" cy="86" rx="15" ry="13" fill="#7a6a58" opacity=".8"/>
+<circle cx="92" cy="72" r="12" fill="none" stroke="#c8a040" stroke-width="3" class="c14mg"/>
+<circle cx="92" cy="72" r="8" fill="#a0c8e8" opacity=".3" class="c14mg"/>
+<line x1="100" y1="80" x2="108" y2="92" stroke="#c8a040" stroke-width="3" stroke-linecap="round" class="c14mg"/>
+<ellipse cx="86" cy="86" rx="9" ry="6" fill="#5a4a38" class="c14mg"/>
+<circle cx="58" cy="50" r="24" fill="#5a4a38"/>
+<ellipse cx="58" cy="32" rx="22" ry="8" fill="#6a5040"/><rect x="36" y="26" width="44" height="10" rx="5" fill="#7a6050"/>
+<ellipse cx="36" cy="32" rx="10" ry="6" fill="#6a5040" transform="rotate(-20,36,32)"/>
+<ellipse cx="80" cy="32" rx="10" ry="6" fill="#6a5040" transform="rotate(20,80,32)"/>
+<polygon points="40,30 33,12 50,27" fill="#5a4a38"/><polygon points="76,30 83,12 66,27" fill="#5a4a38"/>
+<g class="c14ey">
+<circle cx="49" cy="50" r="6" fill="#2c4020"/><circle cx="67" cy="50" r="6" fill="#2c4020"/>
+<circle cx="49" cy="51" r="3.5" fill="#1a0810"/><circle cx="67" cy="51" r="3.5" fill="#1a0810"/>
+<circle cx="50.5" cy="49" r="1.5" fill="white"/><circle cx="68.5" cy="49" r="1.5" fill="white"/>
+</g>
+<polygon points="58,58 55,61 61,61" fill="#a07060"/>
+<path d="M52 64 Q58 67 64 64" stroke="#2c1810" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<line x1="28" y1="58" x2="51" y2="60" stroke="#a09080" stroke-width=".9" opacity=".5"/><line x1="65" y1="60" x2="88" y2="58" stroke="#a09080" stroke-width=".9" opacity=".5"/>
+<ellipse cx="40" cy="106" rx="10" ry="6" fill="#4a3a28"/>
+</svg>`,
+
+/* Cat 15 — Astronaut space cat */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.c15b{animation:petBounce 2s ease-in-out infinite;}.c15s{animation:eyeShine 1.5s ease-in-out infinite;}</style>
+<g class="c15b">
+<ellipse cx="60" cy="86" rx="24" ry="20" fill="#c8d8e8"/><ellipse cx="60" cy="90" rx="13" ry="11" fill="#a0b8c8" opacity=".8"/>
+<circle cx="60" cy="80" r="5" fill="#e8f0f8"/><circle cx="60" cy="80" r="3" fill="#80a8c0"/>
+<circle cx="60" cy="48" r="28" fill="#e0eaf4" opacity=".9"/><circle cx="60" cy="48" r="26" fill="#1a2840" opacity=".8"/>
+<ellipse cx="52" cy="38" rx="8" ry="5" fill="white" opacity=".15" transform="rotate(-20,52,38)"/>
+<circle cx="60" cy="50" r="18" fill="#f0a050"/>
+<polygon points="46,36 40,22 54,33" fill="#f0a050"/><polygon points="74,36 80,22 66,33" fill="#f0a050"/>
+<circle cx="52" cy="49" r="5.5" fill="#2c1810"/><circle cx="68" cy="49" r="5.5" fill="#2c1810"/>
+<circle cx="53.5" cy="47.5" r="1.8" fill="white" class="c15s"/><circle cx="69.5" cy="47.5" r="1.8" fill="white"/>
+<polygon points="60,56 57,59 63,59" fill="#e05060"/>
+<path d="M54,59 Q52,63 50,63 M66,59 Q68,63 70,63" stroke="#c04050" stroke-width="1" fill="none" stroke-linecap="round"/>
+<text x="14" y="30" font-size="10" fill="white" opacity=".6" font-family="serif">✦</text>
+<text x="94" y="26" font-size="8" fill="white" opacity=".5" font-family="serif">★</text>
+<ellipse cx="44" cy="104" rx="9" ry="6" fill="#b0c8d8"/><ellipse cx="76" cy="104" rx="9" ry="6" fill="#b0c8d8"/>
+</g></svg>`
+
+];
+
+/* ═══════════════════════════════
+   15 DOGS (SVG)
+═══════════════════════════════ */
+const DOGS = [
+
+/* Dog 1 — Golden retriever tongue out tail wag */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d1tl{animation:tailWagR .5s ease-in-out infinite alternate;transform-origin:96px 86px;}.d1ey{animation:blink 4s ease-in-out infinite;}</style>
+<path class="d1tl" d="M96,86 Q112,72 108,54" stroke="#d4900a" stroke-width="10" stroke-linecap="round" fill="none"/>
+<ellipse cx="60" cy="86" rx="30" ry="26" fill="#e8a820"/><ellipse cx="60" cy="92" rx="18" ry="14" fill="#f8d870" opacity=".65"/>
+<ellipse cx="36" cy="106" rx="12" ry="8" fill="#d89818"/><ellipse cx="84" cy="106" rx="12" ry="8" fill="#d89818"/>
+<circle cx="60" cy="52" r="26" fill="#e8a820"/>
+<ellipse cx="34" cy="52" rx="10" ry="18" fill="#c88010" transform="rotate(-12,34,52)"/>
+<ellipse cx="86" cy="52" rx="10" ry="18" fill="#c88010" transform="rotate(12,86,52)"/>
+<ellipse cx="60" cy="62" rx="14" ry="10" fill="#f8d870"/>
+<g class="d1ey"><circle cx="50" cy="50" r="6" fill="#2c1810"/><circle cx="70" cy="50" r="6" fill="#2c1810"/><circle cx="52" cy="48" r="2.2" fill="white"/><circle cx="72" cy="48" r="2.2" fill="white"/></g>
+<ellipse cx="60" cy="60" rx="6" ry="4.5" fill="#2c1810"/>
+<ellipse cx="60" cy="70" rx="5" ry="7" fill="#f06080"/>
+<line x1="60" y1="65" x2="60" y2="77" stroke="#d04060" stroke-width="1" opacity=".5"/>
+<ellipse cx="44" cy="110" rx="10" ry="6" fill="#d89818"/><ellipse cx="76" cy="110" rx="10" ry="6" fill="#d89818"/>
+</svg>`,
+
+/* Dog 2 — Happy Shiba squint smile */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d2tl{animation:tailWagR .55s ease-in-out infinite alternate;transform-origin:90px 80px;}</style>
+<path class="d2tl" d="M90,80 Q108,64 100,46 Q96,36 88,42" stroke="#e08030" stroke-width="8" stroke-linecap="round" fill="none"/>
+<ellipse cx="58" cy="84" rx="28" ry="24" fill="#e88030"/><ellipse cx="58" cy="88" rx="16" ry="16" fill="#f8ede0"/>
+<circle cx="58" cy="52" r="26" fill="#e88030"/>
+<polygon points="38,30 30,10 52,28" fill="#e88030"/><polygon points="39,29 32,12 50,28" fill="#c86020" opacity=".5"/>
+<polygon points="78,30 86,10 64,28" fill="#e88030"/><polygon points="77,29 84,12 66,28" fill="#c86020" opacity=".5"/>
+<ellipse cx="58" cy="62" rx="15" ry="11" fill="#f8ede0"/>
+<path d="M44 50 Q50 45 56 50" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M60 50 Q66 45 72 50" stroke="#2c1810" stroke-width="3" fill="none" stroke-linecap="round"/>
+<ellipse cx="58" cy="60" rx="5.5" ry="4" fill="#2c1810"/>
+<path d="M48 66 Q58 74 68 66" stroke="#2c1810" stroke-width="2" fill="none" stroke-linecap="round"/>
+<circle cx="42" cy="62" r="7" fill="#f06040" opacity=".25"/><circle cx="74" cy="62" r="7" fill="#f06040" opacity=".25"/>
+<ellipse cx="40" cy="108" rx="10" ry="6" fill="#d07020"/><ellipse cx="76" cy="108" rx="10" ry="6" fill="#d07020"/>
+</svg>`,
+
+/* Dog 3 — Surprised Dalmatian */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d3sh{animation:shake .6s ease-in-out infinite;}.d3tl{animation:tailWagR .4s ease-in-out infinite alternate;transform-origin:94px 84px;}</style>
+<path class="d3tl" d="M94,84 Q110,70 106,54" stroke="#e0e0e0" stroke-width="9" stroke-linecap="round" fill="none"/>
+<g class="d3sh">
+<ellipse cx="60" cy="86" rx="28" ry="22" fill="#f4f4f4"/>
+<circle cx="52" cy="80" r="6" fill="#303030" opacity=".7"/><circle cx="68" cy="90" r="5" fill="#303030" opacity=".65"/><circle cx="44" cy="92" r="4" fill="#303030" opacity=".55"/>
+<circle cx="60" cy="54" r="24" fill="#f4f4f4"/>
+<circle cx="50" cy="44" r="5" fill="#303030" opacity=".6"/><circle cx="70" cy="48" r="4" fill="#303030" opacity=".55"/><circle cx="62" cy="38" r="3" fill="#303030" opacity=".5"/>
+<ellipse cx="36" cy="54" rx="9" ry="16" fill="#e0e0e0" transform="rotate(-10,36,54)"/>
+<ellipse cx="84" cy="54" rx="9" ry="16" fill="#e0e0e0" transform="rotate(10,84,54)"/>
+<circle cx="50" cy="52" r="9" fill="white"/><circle cx="70" cy="52" r="9" fill="white"/>
+<circle cx="50" cy="53" r="5.5" fill="#1a0810"/><circle cx="70" cy="53" r="5.5" fill="#1a0810"/>
+<circle cx="52" cy="51" r="2.5" fill="white"/><circle cx="72" cy="51" r="2.5" fill="white"/>
+<ellipse cx="60" cy="64" rx="13" ry="9" fill="#f0f0f0"/>
+<ellipse cx="60" cy="62" rx="5" ry="3.5" fill="#2c1810"/>
+<ellipse cx="60" cy="70" rx="4" ry="5" fill="#2c1810"/>
+</g></svg>`,
+
+/* Dog 4 — Derpy Corgi tongue out */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d4tl{animation:tailWagR .45s ease-in-out infinite alternate;transform-origin:94px 72px;}.d4ey{animation:blink 3s ease-in-out infinite;}</style>
+<ellipse cx="94" cy="72" rx="8" ry="5" fill="#e8a830" class="d4tl"/>
+<ellipse cx="60" cy="82" rx="34" ry="20" fill="#e8a830"/><ellipse cx="60" cy="85" rx="20" ry="13" fill="#f8e8c0"/>
+<rect x="36" y="96" width="14" height="16" rx="5" fill="#d89020"/><rect x="70" y="96" width="14" height="16" rx="5" fill="#d89020"/>
+<ellipse cx="60" cy="52" rx="28" ry="24" fill="#e8a830"/>
+<ellipse cx="28" cy="54" rx="12" ry="20" fill="#e8a830"/><ellipse cx="30" cy="56" rx="8" ry="14" fill="#c88020" opacity=".45"/>
+<ellipse cx="92" cy="54" rx="12" ry="20" fill="#e8a830"/><ellipse cx="90" cy="56" rx="8" ry="14" fill="#c88020" opacity=".45"/>
+<ellipse cx="60" cy="60" rx="16" ry="12" fill="#f8e8c0"/>
+<g class="d4ey"><circle cx="50" cy="50" r="6.5" fill="#2c1810"/><circle cx="70" cy="50" r="6.5" fill="#2c1810"/><circle cx="52" cy="48" r="2.5" fill="white"/><circle cx="72" cy="48" r="2.5" fill="white"/></g>
+<ellipse cx="60" cy="58" rx="6" ry="4.5" fill="#2c1810"/>
+<ellipse cx="66" cy="68" rx="5" ry="6" fill="#f06080" transform="rotate(15,66,68)"/>
+<ellipse cx="42" cy="112" rx="9" ry="5" fill="#d89020"/><ellipse cx="78" cy="112" rx="9" ry="5" fill="#d89020"/>
+</svg>`,
+
+/* Dog 5 — Pink Poodle dancing star eyes */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d5al{animation:waveArm .55s ease-in-out infinite alternate;transform-origin:30px 80px;}.d5ar{animation:waveArm .55s ease-in-out infinite alternate reverse;transform-origin:90px 80px;}.d5tl{animation:tailWagR .5s ease-in-out infinite alternate;transform-origin:96px 82px;}</style>
+<circle cx="104" cy="56" r="10" fill="#d8a0c0"/>
+<path class="d5tl" d="M96,82 Q106,68 104,56" stroke="#d8a0c0" stroke-width="7" stroke-linecap="round" fill="none"/>
+<circle cx="60" cy="86" r="22" fill="#e8b8d8"/>
+<circle cx="60" cy="52" r="22" fill="#e8b8d8"/>
+<circle cx="60" cy="30" r="12" fill="#e8b8d8"/><circle cx="60" cy="30" r="8" fill="#f8d0e8"/>
+<circle cx="34" cy="56" r="12" fill="#d8a0c0"/><circle cx="86" cy="56" r="12" fill="#d8a0c0"/>
+<ellipse cx="60" cy="58" rx="12" ry="9" fill="#f8d0e8"/>
+<text x="48" y="55" font-size="12" fill="#f0a020" text-anchor="middle" font-family="Georgia,serif">★</text>
+<text x="72" y="55" font-size="12" fill="#f0a020" text-anchor="middle" font-family="Georgia,serif">★</text>
+<circle cx="60" cy="58" r="3.5" fill="#c060a0"/>
+<path d="M52 64 Q60 70 68 64" stroke="#c060a0" stroke-width="2" fill="none" stroke-linecap="round"/>
+<circle cx="44" cy="62" r="7" fill="#f09080" opacity=".3"/><circle cx="76" cy="62" r="7" fill="#f09080" opacity=".3"/>
+<circle cx="28" cy="82" r="10" fill="#d8a0c0" class="d5al"/><circle cx="92" cy="82" r="10" fill="#d8a0c0" class="d5ar"/>
+<circle cx="46" cy="108" r="9" fill="#d8a0c0"/><circle cx="74" cy="108" r="9" fill="#d8a0c0"/>
+<text x="96" y="30" font-size="14" fill="#f0c040" opacity=".7" font-family="Georgia,serif">✦</text>
+<text x="14" y="38" font-size="10" fill="#f0c040" opacity=".55" font-family="Georgia,serif">✦</text>
+</svg>`,
+
+/* Dog 6 — Tiny Chihuahua with big ears trembling */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d6sh{animation:shake .4s ease-in-out infinite;}.d6tl{animation:tailWagR .35s ease-in-out infinite alternate;transform-origin:96px 88px;}</style>
+<path class="d6tl" d="M96,88 Q112,72 108,56" stroke="#c8a060" stroke-width="7" fill="none" stroke-linecap="round"/>
+<g class="d6sh">
+<ellipse cx="58" cy="86" rx="22" ry="18" fill="#c8a060"/>
+<circle cx="58" cy="54" r="22" fill="#c8a060"/>
+<!-- huge ears -->
+<ellipse cx="30" cy="42" rx="16" ry="24" fill="#c8a060" transform="rotate(-15,30,42)"/>
+<ellipse cx="32" cy="44" rx="10" ry="16" fill="#e0b878" opacity=".5" transform="rotate(-15,30,42)"/>
+<ellipse cx="86" cy="42" rx="16" ry="24" fill="#c8a060" transform="rotate(15,86,42)"/>
+<ellipse cx="84" cy="44" rx="10" ry="16" fill="#e0b878" opacity=".5" transform="rotate(15,86,42)"/>
+<ellipse cx="58" cy="62" rx="12" ry="9" fill="#e0c880"/>
+<!-- big round eyes -->
+<circle cx="50" cy="52" r="8" fill="#2c1810"/><circle cx="66" cy="52" r="8" fill="#2c1810"/>
+<circle cx="52" cy="50" r="3" fill="white"/><circle cx="68" cy="50" r="3" fill="white"/>
+<ellipse cx="58" cy="60" rx="4" ry="3" fill="#2c1810"/>
+<path d="M52 65 Q58 68 64 65" stroke="#2c1810" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<circle cx="44" cy="60" r="6" fill="#f09080" opacity=".3"/><circle cx="72" cy="60" r="6" fill="#f09080" opacity=".3"/>
+<ellipse cx="44" cy="104" rx="9" ry="5" fill="#b89050"/><ellipse cx="72" cy="104" rx="9" ry="5" fill="#b89050"/>
+</g></svg>`,
+
+/* Dog 7 — Fluffy Samoyed smiling */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d7b{animation:petBounce 1.5s ease-in-out infinite;}.d7tl{animation:tailWagR .6s ease-in-out infinite alternate;transform-origin:92px 78px;}</style>
+<path class="d7tl" d="M92,78 Q110,60 106,42 Q104,30 96,36" stroke="#f0ece8" stroke-width="11" fill="none" stroke-linecap="round"/>
+<g class="d7b">
+<circle cx="60" cy="80" r="30" fill="#f0ece8"/>
+<circle cx="60" cy="50" r="28" fill="#f0ece8"/>
+<circle cx="60" cy="52" r="22" fill="#fff" opacity=".5"/>
+<ellipse cx="32" cy="54" rx="14" ry="22" fill="#e8e4e0"/>
+<ellipse cx="88" cy="54" rx="14" ry="22" fill="#e8e4e0"/>
+<ellipse cx="60" cy="64" rx="16" ry="12" fill="#fff" opacity=".8"/>
+<circle cx="49" cy="50" r="7" fill="#2c1810"/><circle cx="71" cy="50" r="7" fill="#2c1810"/>
+<circle cx="51" cy="48" r="2.5" fill="white"/><circle cx="73" cy="48" r="2.5" fill="white"/>
+<ellipse cx="60" cy="60" rx="6" ry="4" fill="#d0a0a0"/>
+<path d="M48 66 Q60 74 72 66" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<circle cx="44" cy="62" r="8" fill="#f09080" opacity=".2"/><circle cx="76" cy="62" r="8" fill="#f09080" opacity=".2"/>
+<line x1="28" y1="60" x2="52" y2="62" stroke="#d0c8c0" stroke-width=".9" opacity=".5"/><line x1="68" y1="62" x2="92" y2="60" stroke="#d0c8c0" stroke-width=".9" opacity=".5"/>
+</g></svg>`,
+
+/* Dog 8 — Dachshund stretching long body */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d8tl{animation:tailWagR .5s ease-in-out infinite alternate;transform-origin:108px 76px;}.d8b{animation:petBounce 1s ease-in-out infinite;}</style>
+<g class="d8b">
+<!-- long sausage body -->
+<ellipse cx="60" cy="84" rx="50" ry="14" fill="#8b5a28"/>
+<ellipse cx="60" cy="84" rx="46" ry="10" fill="#a87040" opacity=".6"/>
+<!-- tiny front legs -->
+<rect x="22" y="92" width="10" height="14" rx="4" fill="#7a4820"/>
+<rect x="36" y="92" width="10" height="14" rx="4" fill="#7a4820"/>
+<!-- tiny back legs -->
+<rect x="74" y="92" width="10" height="14" rx="4" fill="#7a4820"/>
+<rect x="88" y="92" width="10" height="14" rx="4" fill="#7a4820"/>
+<!-- tail -->
+<path class="d8tl" d="M108,76 Q118,60 112,50" stroke="#8b5a28" stroke-width="7" fill="none" stroke-linecap="round"/>
+<!-- head -->
+<circle cx="28" cy="74" r="18" fill="#8b5a28"/>
+<ellipse cx="18" cy="80" rx="7" ry="13" fill="#7a4820" transform="rotate(-10,18,80)"/>
+<ellipse cx="38" cy="80" rx="7" ry="12" fill="#7a4820" transform="rotate(10,38,80)"/>
+<ellipse cx="28" cy="80" rx="10" ry="8" fill="#c09060"/>
+<circle cx="22" cy="72" r="6" fill="#2c1810"/><circle cx="34" cy="72" r="6" fill="#2c1810"/>
+<circle cx="23.5" cy="70.5" r="2" fill="white"/><circle cx="35.5" cy="70.5" r="2" fill="white"/>
+<ellipse cx="28" cy="78" rx="4" ry="3" fill="#2c1810"/>
+<path d="M22 82 Q28 86 34 82" stroke="#2c1810" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+</g></svg>`,
+
+/* Dog 9 — Husky with different eye colors howling */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d9tl{animation:tailWagR .7s ease-in-out infinite alternate;transform-origin:90px 80px;}.d9b{animation:petBounce 1.2s ease-in-out infinite;}</style>
+<path class="d9tl" d="M90,80 Q108,62 102,44 Q98,34 90,40" stroke="#7080a0" stroke-width="9" fill="none" stroke-linecap="round"/>
+<g class="d9b">
+<ellipse cx="58" cy="84" rx="28" ry="22" fill="#8090b0"/><ellipse cx="58" cy="86" rx="16" ry="14" fill="#f0f0f0"/>
+<circle cx="58" cy="52" r="26" fill="#8090b0"/>
+<ellipse cx="58" cy="60" rx="14" ry="10" fill="#f0f0f0"/>
+<polygon points="38,30 28,8 50,27" fill="#8090b0"/><polygon points="39,29 30,10 49,27" fill="#606080" opacity=".6"/>
+<polygon points="78,30 88,8 66,27" fill="#8090b0"/><polygon points="77,29 86,10 67,27" fill="#606080" opacity=".6"/>
+<!-- heterochromia eyes -->
+<circle cx="49" cy="50" r="7" fill="#4090d0"/><circle cx="49" cy="51" r="4" fill="#1a0810"/><circle cx="50.5" cy="49" r="2" fill="white"/>
+<circle cx="67" cy="50" r="7" fill="#60a840"/><circle cx="67" cy="51" r="4" fill="#1a0810"/><circle cx="68.5" cy="49" r="2" fill="white"/>
+<ellipse cx="58" cy="60" rx="5" ry="3.5" fill="#2c1810"/>
+<!-- howl mouth open -->
+<ellipse cx="58" cy="68" rx="7" ry="9" fill="#2c1810"/>
+<ellipse cx="58" cy="66" rx="5" ry="5" fill="#c03050" opacity=".8"/>
+<line x1="30" y1="58" x2="52" y2="60" stroke="#7080a0" stroke-width=".9" opacity=".5"/><line x1="64" y1="60" x2="86" y2="58" stroke="#7080a0" stroke-width=".9" opacity=".5"/>
+<ellipse cx="40" cy="106" rx="10" ry="6" fill="#6070a0"/><ellipse cx="76" cy="106" rx="10" ry="6" fill="#6070a0"/>
+</g></svg>`,
+
+/* Dog 10 — Bulldog grumpy face */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d10tl{animation:tailWagR .4s ease-in-out infinite alternate;transform-origin:96px 90px;}.d10ey{animation:blink 5s ease-in-out infinite;}</style>
+<ellipse cx="96" cy="90" rx="9" ry="6" fill="#c8a880" class="d10tl"/>
+<ellipse cx="60" cy="86" rx="32" ry="24" fill="#c8a880"/>
+<ellipse cx="60" cy="90" rx="20" ry="14" fill="#e0c090" opacity=".7"/>
+<circle cx="60" cy="50" r="28" fill="#c8a880"/>
+<!-- wrinkle folds -->
+<path d="M40 56 Q50 60 60 56" stroke="#a88060" stroke-width="1.5" fill="none" opacity=".5"/>
+<path d="M60 56 Q70 60 80 56" stroke="#a88060" stroke-width="1.5" fill="none" opacity=".5"/>
+<ellipse cx="60" cy="64" rx="18" ry="14" fill="#e0c090"/>
+<g class="d10ey">
+<circle cx="46" cy="48" r="7" fill="#2c1810"/><circle cx="74" cy="48" r="7" fill="#2c1810"/>
+<circle cx="47.5" cy="46.5" r="2.5" fill="white"/><circle cx="75.5" cy="46.5" r="2.5" fill="white"/>
+</g>
+<!-- grumpy brows -->
+<path d="M39 38 Q46 44 53 38" stroke="#a88060" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M67 38 Q74 44 81 38" stroke="#a88060" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="60" cy="62" rx="7" ry="5" fill="#2c1810"/>
+<!-- underbite -->
+<path d="M48 70 Q60 66 72 70" stroke="#2c1810" stroke-width="2" fill="none" stroke-linecap="round"/>
+<ellipse cx="50" cy="72" rx="4" ry="3" fill="#f0f0f0"/><ellipse cx="70" cy="72" rx="4" ry="3" fill="#f0f0f0"/>
+<ellipse cx="36" cy="106" rx="12" ry="7" fill="#b09070"/><ellipse cx="84" cy="106" rx="12" ry="7" fill="#b09070"/>
+</svg>`,
+
+/* Dog 11 — Border Collie herding with determined look */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d11tl{animation:tailWagR .6s ease-in-out infinite alternate;transform-origin:90px 82px;}.d11b{animation:petBounce 1.1s ease-in-out infinite;}</style>
+<path class="d11tl" d="M90,82 Q108,66 104,48" stroke="#303030" stroke-width="9" fill="none" stroke-linecap="round"/>
+<g class="d11b">
+<ellipse cx="58" cy="84" rx="28" ry="22" fill="#303030"/><ellipse cx="58" cy="86" rx="14" ry="14" fill="#f0f0f0"/>
+<circle cx="58" cy="52" r="24" fill="#303030"/>
+<!-- white blaze -->
+<ellipse cx="58" cy="56" rx="8" ry="14" fill="#f0f0f0"/>
+<polygon points="38,30 30,10 48,27" fill="#303030"/>
+<polygon points="78,30 86,10 68,27" fill="#303030"/>
+<!-- alert ears half up -->
+<polygon points="38,34 32,16 46,30" fill="#f0f0f0" opacity=".8"/>
+<!-- amber eyes -->
+<circle cx="48" cy="50" r="6.5" fill="#c07820"/><circle cx="68" cy="50" r="6.5" fill="#c07820"/>
+<circle cx="48" cy="51" r="4" fill="#1a0810"/><circle cx="68" cy="51" r="4" fill="#1a0810"/>
+<circle cx="49.5" cy="49" r="1.8" fill="white"/><circle cx="69.5" cy="49" r="1.8" fill="white"/>
+<ellipse cx="58" cy="62" rx="5" ry="3.5" fill="#2c1810"/>
+<path d="M50 66 Q58 70 66 66" stroke="#2c1810" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<line x1="28" y1="60" x2="51" y2="62" stroke="#808080" stroke-width=".9" opacity=".5"/><line x1="65" y1="62" x2="88" y2="60" stroke="#808080" stroke-width=".9" opacity=".5"/>
+<ellipse cx="40" cy="106" rx="10" ry="6" fill="#202020"/><ellipse cx="76" cy="106" rx="10" ry="6" fill="#202020"/>
+</g></svg>`,
+
+/* Dog 12 — Tiny Maltese with bow */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d12b{animation:petBounce 1.6s ease-in-out infinite;}.d12tl{animation:tailWagR .5s ease-in-out infinite alternate;transform-origin:94px 86px;}</style>
+<path class="d12tl" d="M94,86 Q112,68 106,50" stroke="#f0ece8" stroke-width="10" fill="none" stroke-linecap="round"/>
+<g class="d12b">
+<circle cx="60" cy="84" r="26" fill="#f0ece8"/><circle cx="60" cy="82" r="22" fill="#fff" opacity=".6"/>
+<circle cx="60" cy="52" r="24" fill="#f0ece8"/><circle cx="60" cy="52" r="20" fill="#fff" opacity=".5"/>
+<!-- bow on head -->
+<polygon points="52,28 44,20 52,34" fill="#f06090"/><polygon points="68,28 76,20 68,34" fill="#f06090"/>
+<circle cx="60" cy="30" r="5" fill="#f06090"/><circle cx="60" cy="30" r="3" fill="#f8d0e0"/>
+<circle cx="49" cy="52" r="7" fill="#2c1810"/><circle cx="71" cy="52" r="7" fill="#2c1810"/>
+<circle cx="51" cy="50" r="2.5" fill="white"/><circle cx="73" cy="50" r="2.5" fill="white"/>
+<ellipse cx="60" cy="60" rx="5" ry="3.5" fill="#f090a0"/>
+<path d="M52 64 Q60 68 68 64" stroke="#2c1810" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<circle cx="44" cy="62" r="7" fill="#f090a0" opacity=".25"/><circle cx="76" cy="62" r="7" fill="#f090a0" opacity=".25"/>
+<line x1="28" y1="60" x2="52" y2="62" stroke="#d0c8c0" stroke-width=".9" opacity=".5"/><line x1="68" y1="62" x2="92" y2="60" stroke="#d0c8c0" stroke-width=".9" opacity=".5"/>
+</g></svg>`,
+
+/* Dog 13 — Labrador puppy with ball */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d13tl{animation:tailWagR .45s ease-in-out infinite alternate;transform-origin:94px 82px;}.d13b{animation:petBounce .9s ease-in-out infinite;}</style>
+<path class="d13tl" d="M94,82 Q112,66 106,48" stroke="#c09040" stroke-width="10" fill="none" stroke-linecap="round"/>
+<g class="d13b">
+<ellipse cx="58" cy="84" rx="28" ry="24" fill="#c09040"/><ellipse cx="58" cy="90" rx="16" ry="14" fill="#e0b860" opacity=".65"/>
+<circle cx="58" cy="50" r="26" fill="#c09040"/>
+<ellipse cx="30" cy="54" rx="10" ry="18" fill="#a87830" transform="rotate(-12,30,54)"/>
+<ellipse cx="86" cy="54" rx="10" ry="18" fill="#a87830" transform="rotate(12,86,54)"/>
+<ellipse cx="58" cy="62" rx="14" ry="10" fill="#e0b860"/>
+<circle cx="48" cy="50" r="6.5" fill="#2c1810"/><circle cx="68" cy="50" r="6.5" fill="#2c1810"/>
+<circle cx="49.5" cy="48.5" r="2.2" fill="white"/><circle cx="69.5" cy="48.5" r="2.2" fill="white"/>
+<ellipse cx="58" cy="60" rx="5.5" ry="4" fill="#2c1810"/>
+<path d="M50 66 Q58 72 66 66" stroke="#2c1810" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- ball in mouth area -->
+<circle cx="58" cy="76" r="8" fill="#f06030"/><line x1="58" y1="68" x2="58" y2="84" stroke="#c04020" stroke-width="1" opacity=".5"/>
+<line x1="50" y1="76" x2="66" y2="76" stroke="#c04020" stroke-width="1" opacity=".5"/>
+<ellipse cx="40" cy="108" rx="10" ry="6" fill="#a87030"/><ellipse cx="76" cy="108" rx="10" ry="6" fill="#a87030"/>
+</g></svg>`,
+
+/* Dog 14 — Pomeranian floof spinning */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d14b{animation:petBounce .8s ease-in-out infinite;}.d14tl{animation:tailWagR .4s ease-in-out infinite alternate;transform-origin:90px 74px;}</style>
+<path class="d14tl" d="M90,74 Q108,56 102,38 Q98,28 90,34" stroke="#e8a030" stroke-width="12" fill="none" stroke-linecap="round"/>
+<g class="d14b">
+<!-- fluffy body layers -->
+<circle cx="60" cy="82" r="28" fill="#f0a020"/>
+<circle cx="60" cy="82" r="24" fill="#f8c040" opacity=".7"/>
+<circle cx="60" cy="82" r="18" fill="#f8d060" opacity=".5"/>
+<!-- fluffy head -->
+<circle cx="60" cy="50" r="26" fill="#f0a020"/>
+<circle cx="60" cy="52" r="20" fill="#f8c040" opacity=".6"/>
+<!-- pointy ears -->
+<polygon points="40,32 30,8 52,28" fill="#f0a020"/>
+<polygon points="41,31 32,10 50,28" fill="#e88010" opacity=".5"/>
+<polygon points="80,32 90,8 68,28" fill="#f0a020"/>
+<polygon points="79,31 88,10 70,28" fill="#e88010" opacity=".5"/>
+<!-- foxy muzzle -->
+<ellipse cx="60" cy="58" rx="10" ry="8" fill="#f8d060"/>
+<!-- bright eyes -->
+<circle cx="49" cy="48" r="6" fill="#2c1810"/><circle cx="71" cy="48" r="6" fill="#2c1810"/>
+<circle cx="50.5" cy="46.5" r="2.2" fill="white"/><circle cx="72.5" cy="46.5" r="2.2" fill="white"/>
+<ellipse cx="60" cy="56" rx="4.5" ry="3.5" fill="#2c1810"/>
+<path d="M53 62 Q60 66 67 62" stroke="#2c1810" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<circle cx="44" cy="58" r="7" fill="#f09040" opacity=".3"/><circle cx="76" cy="58" r="7" fill="#f09040" opacity=".3"/>
+</g></svg>`,
+
+/* Dog 15 — Beagle detective with notebook */
+`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><style>.d15ey{animation:blink 3.5s ease-in-out infinite;}.d15tl{animation:tailWagR .55s ease-in-out infinite alternate;transform-origin:90px 84px;}</style>
+<path class="d15tl" d="M90,84 Q108,68 104,52" stroke="#a07030" stroke-width="9" fill="none" stroke-linecap="round"/>
+<ellipse cx="60" cy="86" rx="28" ry="22" fill="#c09050"/><ellipse cx="60" cy="88" rx="16" ry="14" fill="#e8d090" opacity=".7"/>
+<!-- notebook -->
+<rect x="78" y="72" width="20" height="26" rx="2" fill="#f8f0d8"/>
+<rect x="80" y="76" width="16" height="2" rx="1" fill="#a07030" opacity=".6"/>
+<rect x="80" y="80" width="16" height="2" rx="1" fill="#a07030" opacity=".6"/>
+<rect x="80" y="84" width="10" height="2" rx="1" fill="#a07030" opacity=".4"/>
+<rect x="78" y="72" width="3" height="26" rx="1" fill="#c89040"/>
+<circle cx="60" cy="52" r="24" fill="#c09050"/>
+<ellipse cx="34" cy="54" rx="10" ry="16" fill="#a07030" transform="rotate(-8,34,54)"/>
+<ellipse cx="86" cy="54" rx="10" ry="16" fill="#a07030" transform="rotate(8,86,54)"/>
+<ellipse cx="60" cy="60" rx="13" ry="10" fill="#e8d090"/>
+<g class="d15ey">
+<circle cx="49" cy="50" r="7" fill="#2c1810"/><circle cx="71" cy="50" r="7" fill="#2c1810"/>
+<circle cx="50.5" cy="48.5" r="2.5" fill="white"/><circle cx="72.5" cy="48.5" r="2.5" fill="white"/>
+</g>
+<ellipse cx="60" cy="60" rx="5" ry="3.5" fill="#2c1810"/>
+<path d="M50 66 Q60 70 70 66" stroke="#2c1810" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<line x1="28" y1="58" x2="51" y2="60" stroke="#a09070" stroke-width=".9" opacity=".5"/><line x1="69" y1="60" x2="86" y2="58" stroke="#a09070" stroke-width=".9" opacity=".5"/>
+<ellipse cx="40" cy="108" rx="10" ry="6" fill="#a07030"/><ellipse cx="76" cy="108" rx="10" ry="6" fill="#a07030"/>
+</svg>`
+
+];
+
+/* ═══════════════════════════════
+   COMBINED PETS
+═══════════════════════════════ */
+const PETS = [...CATS, ...DOGS];
+
+/* ═══════════════════════════════
+   STATE
+═══════════════════════════════ */
+let pressInterval = null;
+let pressProgress = 0;
+let isGenerating = false;
+
+/* ═══════════════════════════════
+   REVEAL ANSWER
+═══════════════════════════════ */
+function revealAnswer() {
+  const idx  = Math.floor(Math.random() * ANSWERS.length);
+  const page = Math.floor(Math.random() * 498) + 1;
+  document.getElementById('cardAnswer').textContent = ANSWERS[idx];
+  document.getElementById('cardPage').textContent   = 'p. ' + page;
+
+  const ask = document.getElementById('phase-ask');
+  ask.style.transition = 'opacity .28s ease, transform .28s ease';
+  ask.style.opacity = '0';
+  ask.style.transform = 'translateY(-8px)';
+  setTimeout(() => {
+    ask.style.display = 'none';
+    const ans = document.getElementById('phase-answer');
+    ans.classList.add('visible');
+    document.getElementById('saveHint').style.opacity = '1';
+  }, 290);
+}
+
+/* ═══════════════════════════════
+   ASK AGAIN
+═══════════════════════════════ */
+function askAgain() {
+  const ans = document.getElementById('phase-answer');
+  ans.style.transition = 'opacity .28s ease, transform .28s ease';
+  ans.style.opacity = '0';
+  ans.style.transform = 'translateY(8px)';
+  setTimeout(() => {
+    ans.classList.remove('visible');
+    ans.style.opacity = '';
+    ans.style.transform = '';
+    const ask = document.getElementById('phase-ask');
+    ask.style.display = '';
+    ask.style.opacity = '0';
+    ask.style.transform = 'translateY(8px)';
+    void ask.offsetWidth;
+    ask.style.transition = 'opacity .4s ease, transform .4s ease';
+    ask.style.opacity = '1';
+    ask.style.transform = 'translateY(0)';
+  }, 295);
+}
+
+/* ═══════════════════════════════
+   GO WORK → PET
+═══════════════════════════════ */
+function goWork() {
+  const cap = CAPTIONS[Math.floor(Math.random() * CAPTIONS.length)];
+  const pet = PETS[Math.floor(Math.random() * PETS.length)];
+  document.getElementById('petCaption').textContent = cap;
+  document.getElementById('petStage').innerHTML = pet;
+  document.getElementById('petOverlay').classList.add('visible');
+}
+function closePetOverlay() {
+  document.getElementById('petOverlay').classList.remove('visible');
+}
+
+/* ═══════════════════════════════
+   LONG PRESS → SAVE IMAGE
+═══════════════════════════════ */
+function startPress(e) {
+  if (isGenerating) return;
+  e.preventDefault();
+  const ring   = document.getElementById('pressRing');
+  const circle = document.getElementById('pressCircle');
+  const card   = document.getElementById('answerCard');
+  card.style.transition = 'transform .18s, box-shadow .18s';
+  card.style.transform  = 'scale(.987)';
+  ring.style.opacity = '1';
+  pressProgress = 0;
+  circle.style.strokeDashoffset = '176';
+  const step = 176 / (1600 / 28);
+  pressInterval = setInterval(() => {
+    pressProgress += step;
+    circle.style.strokeDashoffset = Math.max(0, 176 - pressProgress);
+    if (pressProgress >= 176) {
+      clearInterval(pressInterval);
+      endPress(true);
+      generateAndShow();
+    }
+  }, 28);
+}
+
+function endPress(completed = false) {
+  clearInterval(pressInterval);
+  const ring   = document.getElementById('pressRing');
+  const circle = document.getElementById('pressCircle');
+  const card   = document.getElementById('answerCard');
+  card.style.transform = '';
+  if (!completed) {
+    ring.style.opacity = '0';
+    circle.style.strokeDashoffset = '176';
+    pressProgress = 0;
+  }
+}
+
+async function generateAndShow() {
+  if (isGenerating) return;
+  isGenerating = true;
+  showToast('正在生成图片… ✦');
+
+  const ring = document.getElementById('pressRing');
+  ring.style.display = 'none';
+
+  try {
+    const answerText = document.getElementById('cardAnswer').textContent;
+    const pageText   = document.getElementById('cardPage').textContent;
+
+    // Card dimensions (px at 3× scale → looks crisp on retina)
+    const W = 360 * 3, H = 440 * 3, S = 3;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+
+    // ── Background gradient ──
+    const grd = ctx.createLinearGradient(0, 0, W * 0.6, H);
+    grd.addColorStop(0,   '#fefaf2');
+    grd.addColorStop(0.5, '#f8eed8');
+    grd.addColorStop(1,   '#f0e2c0');
+    ctx.fillStyle = grd;
+    roundRect(ctx, 0, 0, W, H, 16 * S);
+    ctx.fill();
+
+    // ── Ambient glow top-right ──
+    const glw = ctx.createRadialGradient(W * 0.85, H * 0.05, 0, W * 0.85, H * 0.05, W * 0.45);
+    glw.addColorStop(0,   'rgba(220,185,120,0.18)');
+    glw.addColorStop(1,   'rgba(220,185,120,0)');
+    ctx.fillStyle = glw;
+    roundRect(ctx, 0, 0, W, H, 16 * S);
+    ctx.fill();
+
+    // ── Top border bar ──
+    const bar = ctx.createLinearGradient(0, 0, W, 0);
+    bar.addColorStop(0,    'rgba(106,80,48,0)');
+    bar.addColorStop(0.22, '#6a5030');
+    bar.addColorStop(0.5,  '#d4aa60');
+    bar.addColorStop(0.78, '#6a5030');
+    bar.addColorStop(1,    'rgba(106,80,48,0)');
+    ctx.fillStyle = bar;
+    roundRect(ctx, 0, 0, W, 7 * S, 0);
+    ctx.fill();
+
+    // ── Corner marks ──
+    const cmSize = 18 * S, cmOff = 10 * S;
+    ctx.strokeStyle = 'rgba(176,136,64,0.38)';
+    ctx.lineWidth = 1.5 * S;
+    // TL
+    ctx.beginPath(); ctx.moveTo(cmOff + cmSize, cmOff); ctx.lineTo(cmOff, cmOff); ctx.lineTo(cmOff, cmOff + cmSize); ctx.stroke();
+    // TR
+    ctx.beginPath(); ctx.moveTo(W - cmOff - cmSize, cmOff); ctx.lineTo(W - cmOff, cmOff); ctx.lineTo(W - cmOff, cmOff + cmSize); ctx.stroke();
+    // BL
+    ctx.beginPath(); ctx.moveTo(cmOff + cmSize, H - cmOff); ctx.lineTo(cmOff, H - cmOff); ctx.lineTo(cmOff, H - cmOff - cmSize); ctx.stroke();
+    // BR
+    ctx.beginPath(); ctx.moveTo(W - cmOff - cmSize, H - cmOff); ctx.lineTo(W - cmOff, H - cmOff); ctx.lineTo(W - cmOff, H - cmOff - cmSize); ctx.stroke();
+
+    // ── Inner border ──
+    ctx.strokeStyle = 'rgba(139,104,64,0.13)';
+    ctx.lineWidth = 1 * S;
+    roundRect(ctx, 12 * S, 12 * S, W - 24 * S, H - 24 * S, 10 * S);
+    ctx.stroke();
+
+    // helper: centered text with auto line-wrap
+    function wrapText(text, x, maxWidth, lineHeight) {
+      // split CJK + latin smartly
+      const words = [];
+      let cur = '';
+      for (const ch of text) {
+        if (/[\u4e00-\u9fff\u3000-\u303f！。，、？…·]/.test(ch)) {
+          if (cur) { words.push(cur); cur = ''; }
+          words.push(ch);
+        } else if (ch === ' ') {
+          if (cur) { words.push(cur); cur = ''; }
+        } else {
+          cur += ch;
+        }
+      }
+      if (cur) words.push(cur);
+
+      const lines = [];
+      let line = '';
+      for (const w of words) {
+        const test = line + w;
+        if (ctx.measureText(test).width > maxWidth && line !== '') {
+          lines.push(line); line = w;
+        } else { line = test; }
+      }
+      if (line) lines.push(line);
+
+      const totalH = lines.length * lineHeight;
+      const startY = H / 2 - totalH / 2 + lineHeight * 0.5;
+
+      if (lines.length === 1) {
+        // 单行：居中
+        ctx.textAlign = 'center';
+        ctx.fillText(lines[0], x, startY);
+      } else {
+        // 多行：找最宽的行，让整个文字块水平居中，内部左对齐
+        ctx.textAlign = 'left';
+        const blockWidth = Math.max(...lines.map(l => ctx.measureText(l).width));
+        const blockLeft = x - blockWidth / 2;
+        lines.forEach((l, i) => {
+          ctx.fillText(l, blockLeft, startY + i * lineHeight);
+        });
+        ctx.textAlign = 'center';
+      }
+      return lines.length;
+    }
+
+    // ── EN label ──
+    ctx.fillStyle = 'rgba(138,104,64,0.6)';
+    ctx.font = `italic ${11 * S}px Georgia,serif`;
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = `${3.5 * S}px`;
+    ctx.fillText('The Book of Answers', W / 2, 68 * S);
+    ctx.letterSpacing = '0px';
+
+    // ── Rule above answer ──
+    const ruleGrd = (y) => {
+      const g = ctx.createLinearGradient(W * 0.2, y, W * 0.8, y);
+      g.addColorStop(0, 'rgba(138,104,64,0)');
+      g.addColorStop(0.5, 'rgba(138,104,64,0.4)');
+      g.addColorStop(1, 'rgba(138,104,64,0)');
+      return g;
+    };
+    ctx.fillStyle = ruleGrd(86 * S);
+    ctx.fillRect(W * 0.2, 86 * S, W * 0.6, 1 * S);
+
+    // ── Answer text ──
+    const fontSize = answerText.length <= 6 ? 38 : answerText.length <= 10 ? 32 : 26;
+    ctx.font = `700 ${fontSize * S}px Georgia,"Times New Roman",serif`;
+    ctx.fillStyle = '#362818';
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = `${2 * S}px`;
+    wrapText(answerText, W / 2, W * 0.7, fontSize * S * 1.75);
+    ctx.letterSpacing = '0px';
+
+    // ── Rule below answer ──
+    ctx.fillStyle = ruleGrd(H - 108 * S);
+    ctx.fillRect(W * 0.2, H - 108 * S, W * 0.6, 1 * S);
+
+    // ── Page number ──
+    ctx.fillStyle = 'rgba(138,104,64,0.6)';
+    ctx.font = `italic ${11 * S}px Georgia,serif`;
+    ctx.letterSpacing = `${2.5 * S}px`;
+    ctx.fillText(pageText, W / 2, H - 82 * S);
+    ctx.letterSpacing = '0px';
+
+    // ── Brand ──
+    ctx.fillStyle = 'rgba(90,66,48,0.28)';
+    ctx.font = `${9 * S}px Georgia,serif`;
+    ctx.letterSpacing = `${2 * S}px`;
+    ctx.fillText('答案之书 · 宇宙来回答', W / 2, H - 40 * S);
+    ctx.letterSpacing = '0px';
+
+    // ── Output ──
+    const dataURL = cv.toDataURL('image/png');
+    document.getElementById('savedImg').src = dataURL;
+    document.getElementById('saveOverlay').classList.add('visible');
+
+  } catch(err) {
+    console.error('Canvas draw error:', err);
+    showToast('生成失败，请截图保存 📷');
+  }
+
+  ring.style.display = '';
+  ring.style.opacity = '0';
+  document.getElementById('pressCircle').style.strokeDashoffset = '176';
+  pressProgress = 0;
+  isGenerating = false;
+}
+
+// Polyfill roundRect for older Safari/Android
+function roundRect(ctx, x, y, w, h, r) {
+  if (typeof ctx.roundRect === 'function') {
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+  }
+}
+
+function closeSaveOverlay() {
+  document.getElementById('saveOverlay').classList.remove('visible');
+}
+
+/* ═══════════════════════════════
+   MODAL HELPERS
+═══════════════════════════════ */
+function openModal(id) {
+  document.getElementById(id).classList.add('visible');
+  // init comment visibility to private by default
+  if (id === 'commentModal') setVis('private');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('visible');
+}
+
+/* ═══════════════════════════════
+   LIKE  (localStorage — no backend needed)
+═══════════════════════════════ */
+let likeCount = 0;
+let userLiked = false;
+
+async function initLike() {
+  // Like count comes from server; personal state from localStorage
+  try {
+    const r = await fetch('/api/captions'); // piggyback: reuse a cheap call
+    // like count is stored separately — use a dedicated lightweight KV fetch
+  } catch(e) {}
+  // Fallback: just use localStorage for personal state
+  userLiked = localStorage.getItem('book-liked') === 'true';
+  likeCount = parseInt(localStorage.getItem('book-like-count') || '0');
+  renderLike();
+
+  // Fetch real count from server
+  try {
+    const r = await fetch('/api/likes');
+    if (r.ok) {
+      const d = await r.json();
+      likeCount = d.count || likeCount;
+      renderLike();
+    }
+  } catch(e) {}
+}
+
+function renderLike() {
+  const btn = document.getElementById('likeBtn');
+  document.getElementById('likeCount').textContent = likeCount > 0 ? likeCount : '赞';
+  btn.querySelector('.like-icon').textContent = userLiked ? '❤️' : '🤍';
+  if (userLiked) btn.classList.add('liked');
+  else btn.classList.remove('liked');
+}
+
+async function toggleLike() {
+  userLiked = !userLiked;
+  likeCount = Math.max(0, likeCount + (userLiked ? 1 : -1));
+  renderLike();
+  localStorage.setItem('book-liked', String(userLiked));
+  localStorage.setItem('book-like-count', String(likeCount));
+  // Sync to server
+  try {
+    await fetch('/api/likes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ delta: userLiked ? 1 : -1 })
+    });
+  } catch(e) {}
+  if (userLiked) showToast('❤️ 谢谢你的喜欢！');
+}
+
+initLike();
+
+/* ═══════════════════════════════
+   LOAD APPROVED CAPTIONS FROM SERVER
+   and merge with built-in CAPTIONS array
+═══════════════════════════════ */
+async function loadExtraCaptions() {
+  try {
+    const r = await fetch('/api/captions');
+    if (!r.ok) return;
+    const { captions } = await r.json();
+    if (captions && captions.length > 0) {
+      captions.forEach(c => {
+        if (!CAPTIONS.includes(c)) CAPTIONS.push(c);
+      });
+    }
+  } catch(e) {}
+}
+loadExtraCaptions();
+
+/* ═══════════════════════════════
+   COMMENT VISIBILITY
+═══════════════════════════════ */
+let commentVisibility = 'private';
+function setVis(v) {
+  commentVisibility = v;
+  document.getElementById('visPrivate').classList.toggle('active', v === 'private');
+  document.getElementById('visPublic').classList.toggle('active', v === 'public');
+}
+setVis('private');
+
+/* ═══════════════════════════════
+   SUBMIT COMMENT
+═══════════════════════════════ */
+async function submitComment() {
+  const text = document.getElementById('commentText').value.trim();
+  if (!text) { showToast('请先写点什么 ✦'); return; }
+
+  try {
+    const r = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'comment', text, visibility: commentVisibility })
+    });
+    if (!r.ok) throw new Error('server error');
+    document.getElementById('commentText').value = '';
+    closeModal('commentModal');
+    showToast(commentVisibility === 'private' ? '留言已发送给 Anna 🌙' : '留言已公开发出 ✨');
+  } catch(e) {
+    showToast('发送失败，请稍后再试 ×');
+  }
+}
+
+/* ═══════════════════════════════
+   SUBMIT CAPTION
+═══════════════════════════════ */
+async function submitCaption() {
+  const text = document.getElementById('submitText').value.trim();
+  if (!text) { showToast('台词不能为空哦 ✦'); return; }
+  if (text.length > 50) { showToast('台词最多50字～'); return; }
+
+  try {
+    const r = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'caption', text })
+    });
+    if (!r.ok) throw new Error('server error');
+    document.getElementById('submitText').value = '';
+    closeModal('submitModal');
+    showToast('投稿已收到，等待 Anna 审核 🌟');
+  } catch(e) {
+    showToast('投稿失败，请稍后再试 ×');
+  }
+}
+
+/* ═══════════════════════════════
+   TOAST
+═══════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="1732a6c8-eb1e-4359-ae6e-b867bd22ecd5"></script>
+</body>
+</html>
