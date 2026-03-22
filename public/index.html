@@ -743,9 +743,125 @@ body::after{
   transition: all .2s;
   box-shadow: 0 4px 12px var(--sh3);
 }
-.modal-btn-send:hover { background: #120e09; }
-.modal-btn-send:active { transform: scale(.975); }
-</style>
+/* ═══════════════════════════════════════════
+   COMMENT BOARD (inside comment modal)
+═══════════════════════════════════════════ */
+.modal-card.board-card {
+  max-width: 400px;
+  max-height: 88vh;
+  display: flex; flex-direction: column;
+  padding: 22px 20px 16px;
+}
+.board-list {
+  flex: 1; overflow-y: auto;
+  margin: 10px 0 12px;
+  display: flex; flex-direction: column; gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.board-list:empty::after {
+  content: '还没有留言，来说第一句话吧 🐾';
+  display: block; text-align: center;
+  font-size: 12px; color: var(--sepia); opacity: .6;
+  padding: 24px 0;
+}
+.board-item {
+  background: rgba(245,237,224,0.5);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--r) - 2px);
+  padding: 10px 12px 8px;
+}
+.board-item-head {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 5px;
+}
+.board-nick {
+  font-size: 11.5px; font-weight: 600;
+  color: var(--sepia2); letter-spacing: .03em;
+}
+.board-time {
+  font-size: 10px; color: var(--sepia); opacity: .55;
+  margin-left: auto;
+}
+.board-text {
+  font-size: 13.5px; color: var(--ink2);
+  line-height: 1.7; letter-spacing: .03em;
+  word-break: break-all;
+}
+.board-reply-btn {
+  background: none; border: none;
+  font-size: 11px; color: var(--sepia); opacity: .6;
+  cursor: pointer; padding: 4px 0 0;
+  letter-spacing: .05em;
+  transition: opacity .2s;
+}
+.board-reply-btn:hover { opacity: 1; }
+
+/* Replies */
+.board-replies {
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.reply-item { }
+.reply-head {
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 3px;
+}
+.reply-nick {
+  font-size: 11px; font-weight: 600; color: var(--sepia2);
+}
+.reply-at {
+  font-size: 11px; color: var(--gold); opacity: .8;
+}
+.reply-time { font-size: 10px; color: var(--sepia); opacity: .45; margin-left: auto; }
+.reply-text { font-size: 12.5px; color: var(--ink2); line-height: 1.65; word-break: break-all; }
+
+/* Input area at bottom */
+.board-input-row {
+  display: flex; gap: 7px; align-items: flex-end;
+}
+.board-input {
+  flex: 1;
+  background: rgba(245,237,224,0.5);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--r) - 2px);
+  color: var(--ink);
+  font-family: var(--f-serif);
+  font-size: 13px; line-height: 1.6;
+  padding: 8px 11px;
+  resize: none; outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.board-input:focus {
+  border-color: var(--sepia2);
+  box-shadow: 0 0 0 3px rgba(138,104,64,0.1);
+}
+.board-send-btn {
+  background: var(--ink2); border: none;
+  border-radius: calc(var(--r) - 2px);
+  color: var(--gold2);
+  font-family: var(--f-serif); font-size: 13px;
+  padding: 8px 14px; cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s;
+  align-self: stretch;
+}
+.board-send-btn:hover { background: #120e09; }
+.board-cancel-reply {
+  font-size: 11px; color: var(--sepia); opacity: .6;
+  cursor: pointer; letter-spacing: .04em;
+  padding: 2px 0 6px;
+  display: none;
+}
+.board-cancel-reply.visible { display: block; }
+
+/* Pet overlay extra buttons */
+.pet-interact {
+  display: flex; gap: 10px;
+  animation: fadeUp .4s .38s ease both;
+}
+
 </head>
 <body>
 
@@ -771,26 +887,55 @@ body::after{
   <div class="pet-caption">
     <div class="pet-caption-txt" id="petCaption"></div>
   </div>
+  <!-- 三个互动按钮移到这里 -->
+  <div class="pet-interact">
+    <button class="interact-btn like-btn" id="likeBtn" onclick="toggleLike()">
+      <span class="like-icon">🤍</span>
+      <span class="like-count" id="likeCount">赞</span>
+    </button>
+    <button class="interact-btn" onclick="openCommentBoard()">
+      💬 留言
+    </button>
+    <button class="interact-btn" onclick="openModal('submitModal')">
+      🐾 投稿猫狗发言
+    </button>
+  </div>
   <button class="pet-close" onclick="closePetOverlay()">我知道了，这就去搬砖 →</button>
 </div>
 
-<!-- Comment modal -->
+<!-- Comment board modal -->
 <div class="modal-overlay" id="commentModal">
-  <div class="modal-card">
-    <div class="modal-title">💬 留 言</div>
-    <div class="modal-sub">说点什么吧～无论感受还是问候</div>
-    <textarea class="modal-textarea" id="commentText" rows="4" maxlength="300" placeholder="在这里写下你的留言…"></textarea>
+  <div class="modal-card board-card">
+    <div class="modal-title">💬 留 言 板</div>
+    <div class="modal-sub">公开留言所有人可见 · 私信仅 Anna 可见</div>
+
+    <!-- 公开留言列表 -->
+    <div class="board-list" id="boardList"></div>
+
+    <!-- 取消回复提示 -->
+    <div class="board-cancel-reply" id="cancelReplyHint" onclick="cancelReply()">
+      ✕ 取消回复
+    </div>
+
+    <!-- 可见性切换 -->
     <div class="vis-toggle">
-      <div class="vis-opt" id="visPrivate" onclick="setVis('private')">
+      <div class="vis-opt active" id="visPrivate" onclick="setVis('private')">
         <div class="vis-dot"></div>仅 Anna 可见
       </div>
       <div class="vis-opt" id="visPublic" onclick="setVis('public')">
-        <div class="vis-dot"></div>公开可见
+        <div class="vis-dot"></div>公开留言
       </div>
     </div>
-    <div class="modal-btns">
-      <button class="modal-btn-cancel" onclick="closeModal('commentModal')">取 消</button>
-      <button class="modal-btn-send" onclick="submitComment()">发 送 ✦</button>
+
+    <!-- 输入框 -->
+    <div class="board-input-row">
+      <textarea class="board-input" id="commentText" rows="2" maxlength="300"
+        placeholder="说点什么…"></textarea>
+      <button class="board-send-btn" onclick="submitComment()">发 送</button>
+    </div>
+
+    <div style="margin-top:10px;">
+      <button class="modal-btn-cancel" onclick="closeModal('commentModal')" style="width:100%">关 闭</button>
     </div>
   </div>
 </div>
@@ -880,20 +1025,6 @@ body::after{
     <div class="actions">
       <button class="btn-again" onclick="askAgain()">↺ &nbsp; 再 问 一 次</button>
       <button class="btn-work" onclick="goWork()">好了，继续搬砖吧 →</button>
-    </div>
-
-    <!-- Interact row: like · comment · submit -->
-    <div class="interact-row" id="interactRow">
-      <button class="interact-btn like-btn" id="likeBtn" onclick="toggleLike()">
-        <span class="like-icon">🤍</span>
-        <span class="like-count" id="likeCount">—</span>
-      </button>
-      <button class="interact-btn" onclick="openModal('commentModal')">
-        💬 留言
-      </button>
-      <button class="interact-btn" onclick="openModal('submitModal')">
-        ✨ 投稿台词
-      </button>
     </div>
   </div>
 
@@ -1890,7 +2021,6 @@ function closeSaveOverlay() {
 ═══════════════════════════════ */
 function openModal(id) {
   document.getElementById(id).classList.add('visible');
-  // init comment visibility to private by default
   if (id === 'commentModal') setVis('private');
 }
 function closeModal(id) {
@@ -1898,30 +2028,102 @@ function closeModal(id) {
 }
 
 /* ═══════════════════════════════
-   LIKE  (localStorage — no backend needed)
+   OPEN COMMENT BOARD
+═══════════════════════════════ */
+function openCommentBoard() {
+  document.getElementById('commentModal').classList.add('visible');
+  setVis('private');
+  loadComments();
+}
+
+/* ═══════════════════════════════
+   LOAD & RENDER PUBLIC COMMENTS
+═══════════════════════════════ */
+async function loadComments() {
+  const list = document.getElementById('boardList');
+  list.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--sepia);padding:16px 0;opacity:.6;">加载中…</div>';
+  try {
+    const r = await fetch('/api/comments');
+    const { comments } = await r.json();
+    renderComments(comments || []);
+  } catch(e) {
+    list.innerHTML = '';
+  }
+}
+
+function renderComments(comments) {
+  const list = document.getElementById('boardList');
+  if (!comments.length) { list.innerHTML = ''; return; }
+  list.innerHTML = comments.map(c => renderCommentItem(c)).join('');
+}
+
+function renderCommentItem(c) {
+  const repliesHtml = (c.replies || []).length > 0
+    ? `<div class="board-replies">${c.replies.map(r => `
+        <div class="reply-item">
+          <div class="reply-head">
+            <span class="reply-nick">🐾 ${esc(r.nickname)}</span>
+            <span class="reply-at">回复 @${esc(c.nickname)}</span>
+            <span class="reply-time">${esc(r.time)}</span>
+          </div>
+          <div class="reply-text">${esc(r.text)}</div>
+        </div>`).join('')}
+      </div>` : '';
+
+  return `<div class="board-item" data-id="${esc(c.id)}" data-nick="${esc(c.nickname)}">
+    <div class="board-item-head">
+      <span class="board-nick">🐾 ${esc(c.nickname)}</span>
+      <span class="board-time">${esc(c.time)}</span>
+    </div>
+    <div class="board-text">${esc(c.text)}</div>
+    ${repliesHtml}
+    <button class="board-reply-btn" onclick="startReply('${esc(c.id)}','${esc(c.nickname)}')">回复</button>
+  </div>`;
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ═══════════════════════════════
+   REPLY STATE
+═══════════════════════════════ */
+let replyTarget = null; // { id, nickname }
+
+function startReply(commentId, nickname) {
+  replyTarget = { id: commentId, nickname };
+  setVis('public'); // replies are always public
+  const input = document.getElementById('commentText');
+  input.placeholder = `回复 @${nickname}…`;
+  input.value = `@${nickname} `;
+  input.focus();
+  document.getElementById('cancelReplyHint').classList.add('visible');
+  // hide vis toggle while replying
+  document.querySelector('.vis-toggle').style.display = 'none';
+}
+
+function cancelReply() {
+  replyTarget = null;
+  document.getElementById('commentText').value = '';
+  document.getElementById('commentText').placeholder = '说点什么…';
+  document.getElementById('cancelReplyHint').classList.remove('visible');
+  document.querySelector('.vis-toggle').style.display = '';
+  setVis('private');
+}
+
+/* ═══════════════════════════════
+   LIKE
 ═══════════════════════════════ */
 let likeCount = 0;
 let userLiked = false;
 
 async function initLike() {
-  // Like count comes from server; personal state from localStorage
   try {
-    const r = await fetch('/api/captions'); // piggyback: reuse a cheap call
-    // like count is stored separately — use a dedicated lightweight KV fetch
-  } catch(e) {}
-  // Fallback: just use localStorage for personal state
-  userLiked = localStorage.getItem('book-liked') === 'true';
-  likeCount = parseInt(localStorage.getItem('book-like-count') || '0');
-  renderLike();
-
-  // Fetch real count from server
-  try {
+    userLiked = localStorage.getItem('book-liked') === 'true';
+    likeCount = parseInt(localStorage.getItem('book-like-count') || '0');
+    renderLike();
     const r = await fetch('/api/likes');
-    if (r.ok) {
-      const d = await r.json();
-      likeCount = d.count || likeCount;
-      renderLike();
-    }
+    if (r.ok) { const d = await r.json(); likeCount = d.count || likeCount; renderLike(); }
   } catch(e) {}
 }
 
@@ -1929,8 +2131,7 @@ function renderLike() {
   const btn = document.getElementById('likeBtn');
   document.getElementById('likeCount').textContent = likeCount > 0 ? likeCount : '赞';
   btn.querySelector('.like-icon').textContent = userLiked ? '❤️' : '🤍';
-  if (userLiked) btn.classList.add('liked');
-  else btn.classList.remove('liked');
+  if (userLiked) btn.classList.add('liked'); else btn.classList.remove('liked');
 }
 
 async function toggleLike() {
@@ -1939,22 +2140,18 @@ async function toggleLike() {
   renderLike();
   localStorage.setItem('book-liked', String(userLiked));
   localStorage.setItem('book-like-count', String(likeCount));
-  // Sync to server
   try {
     await fetch('/api/likes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ delta: userLiked ? 1 : -1 })
     });
   } catch(e) {}
   if (userLiked) showToast('❤️ 谢谢你的喜欢！');
 }
-
 initLike();
 
 /* ═══════════════════════════════
-   LOAD APPROVED CAPTIONS FROM SERVER
-   and merge with built-in CAPTIONS array
+   LOAD APPROVED CAPTIONS
 ═══════════════════════════════ */
 async function loadExtraCaptions() {
   try {
@@ -1962,9 +2159,7 @@ async function loadExtraCaptions() {
     if (!r.ok) return;
     const { captions } = await r.json();
     if (captions && captions.length > 0) {
-      captions.forEach(c => {
-        if (!CAPTIONS.includes(c)) CAPTIONS.push(c);
-      });
+      captions.forEach(c => { if (!CAPTIONS.includes(c)) CAPTIONS.push(c); });
     }
   } catch(e) {}
 }
@@ -1982,25 +2177,41 @@ function setVis(v) {
 setVis('private');
 
 /* ═══════════════════════════════
-   SUBMIT COMMENT
+   SUBMIT COMMENT OR REPLY
 ═══════════════════════════════ */
 async function submitComment() {
-  const text = document.getElementById('commentText').value.trim();
+  const input = document.getElementById('commentText');
+  const text = input.value.trim();
   if (!text) { showToast('请先写点什么 ✦'); return; }
 
+  // If replying
+  if (replyTarget) {
+    try {
+      const r = await fetch('/api/reply', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentId: replyTarget.id, text })
+      });
+      if (!r.ok) throw new Error();
+      input.value = '';
+      cancelReply();
+      showToast('回复成功 🐾');
+      await loadComments();
+    } catch(e) { showToast('回复失败，请稍后再试 ×'); }
+    return;
+  }
+
+  // Normal comment
   try {
     const r = await fetch('/api/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'comment', text, visibility: commentVisibility })
     });
-    if (!r.ok) throw new Error('server error');
-    document.getElementById('commentText').value = '';
-    closeModal('commentModal');
-    showToast(commentVisibility === 'private' ? '留言已发送给 Anna 🌙' : '留言已公开发出 ✨');
-  } catch(e) {
-    showToast('发送失败，请稍后再试 ×');
-  }
+    if (!r.ok) throw new Error();
+    input.value = '';
+    const isPublic = commentVisibility === 'public';
+    showToast(isPublic ? '留言已公开发出 ✨' : '留言已发送给 Anna 🌙');
+    if (isPublic) await loadComments();
+  } catch(e) { showToast('发送失败，请稍后再试 ×'); }
 }
 
 /* ═══════════════════════════════
@@ -2010,20 +2221,16 @@ async function submitCaption() {
   const text = document.getElementById('submitText').value.trim();
   if (!text) { showToast('台词不能为空哦 ✦'); return; }
   if (text.length > 50) { showToast('台词最多50字～'); return; }
-
   try {
     const r = await fetch('/api/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'caption', text })
     });
-    if (!r.ok) throw new Error('server error');
+    if (!r.ok) throw new Error();
     document.getElementById('submitText').value = '';
     closeModal('submitModal');
-    showToast('投稿已收到，等待 Anna 审核 🌟');
-  } catch(e) {
-    showToast('投稿失败，请稍后再试 ×');
-  }
+    showToast('投稿已收到，等待审核 🌟');
+  } catch(e) { showToast('投稿失败，请稍后再试 ×'); }
 }
 
 /* ═══════════════════════════════
